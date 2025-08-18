@@ -9,6 +9,9 @@ class CPU{
         deque<Instruction*> instructionQueue;
         int registers[32];
         ROB *rob;
+        int cycle_number;
+        unordered_map<int, int> memory_map;
+
         vector<string> parseInstruction(string &line){
             string opcode;
             istringstream iss(line);
@@ -30,6 +33,7 @@ class CPU{
     public:
         CPU(){
             rob=new ROB(20);
+            cycle_number=0;
         }
         int totalInstructions(){
             return instructionQueue.size();
@@ -138,5 +142,24 @@ class CPU{
 
         bool continueSimulation(){
             return !(instructionQueue.empty() && rob->isEmpty());
+        }
+
+        void nextCycle(){
+            cycle_number++;
+
+            commit();
+        }
+
+        void commit(){
+            if(!rob->isReady())
+                return;
+            
+            if(rob->isRegisterType())
+                registers[rob->getDest()] = rob->getResult();
+            else
+                memory_map[rob->getDest()] = rob->getResult();
+
+            rob->setIsReady(false);
+            rob->incrementHead();
         }
 };
