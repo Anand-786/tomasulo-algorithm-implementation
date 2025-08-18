@@ -22,6 +22,8 @@ class ROB{
         ROB(int maxSize){
             size=maxSize;
             rob.resize(size);
+            for(int i=0;i<size;i++)
+                rob[i] = new RobEntry();
             head=tail=0;
             count=0;
         }

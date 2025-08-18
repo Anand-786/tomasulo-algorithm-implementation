@@ -2,6 +2,7 @@
 #include "instruction.cpp"
 #include "rob.cpp"
 #include "functionalUnit.cpp"
+#include "lsq.cpp"
 
 using namespace std;
 
@@ -11,6 +12,7 @@ class CPU{
         int totalInstructions;
         int registers[32];
         ROB *rob;
+        LSQ *lsq;
         int current_cycle;
         unordered_map<int, int> memory_map;
         FunctionalUnit *ALU_FU;
@@ -39,7 +41,8 @@ class CPU{
 
     public:
         CPU(){
-            rob=new ROB(20);
+            rob = new ROB(20);
+            lsq = new LSQ(10);
             current_cycle=0;
             ALU_FU = new FunctionalUnit(4, latency[ADD]);
             MUL_FU = new FunctionalUnit(4, latency[MUL]);
@@ -161,6 +164,8 @@ class CPU{
 
             commit();
             writeCDB();
+            memAccess();
+            execute();
         }
 
         void commit(){
@@ -208,5 +213,12 @@ class CPU{
 
             clear->setOccupied(false);
             clear->markIncomplete();
+        }
+
+        void memAccess(){
+        }
+
+        void execute(){
+            
         }
 };
