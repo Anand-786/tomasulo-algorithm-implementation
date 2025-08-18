@@ -1,5 +1,6 @@
 #include <bits/stdc++.h>
 #include "instruction.cpp"
+#include "rob.cpp"
 
 using namespace std;
 
@@ -7,7 +8,7 @@ class CPU{
     private:
         deque<Instruction*> instructionQueue;
         int registers[32];
-
+        ROB *rob;
         vector<string> parseInstruction(string &line){
             string opcode;
             istringstream iss(line);
@@ -27,6 +28,9 @@ class CPU{
         }
 
     public:
+        CPU(){
+            rob=new ROB(20);
+        }
         int totalInstructions(){
             return instructionQueue.size();
         }
@@ -38,8 +42,10 @@ class CPU{
                 return;
             }
             string line;
+            int global_seq_num=0;
             while (getline(file, line)) {
                 if (!line.empty() && line[0] != '#'){
+                    global_seq_num++;
                     vector<string> instruction = parseInstruction(line);
                     if(instruction.size()>3){
                         int opcode;
@@ -61,12 +67,12 @@ class CPU{
                         int dest=stoi(instruction[1].substr(1)),src1=stoi(instruction[2].substr(1)),src2;
                         if(opcode==ADDI){
                             src2=stoi(instruction[3]);
-                            Instruction *instr = new Instruction(opcode,dest,src1,-1,src2,-1);
+                            Instruction *instr = new Instruction(opcode,dest,src1,-1,src2,-1,global_seq_num);
                             instructionQueue.push_back(instr);
                         }
                         else{
                             src2=stoi(instruction[3].substr(1));
-                            Instruction *instr = new Instruction(opcode,dest,src1,src2,-1,-1);
+                            Instruction *instr = new Instruction(opcode,dest,src1,src2,-1,-1,global_seq_num);
                             instructionQueue.push_back(instr);
                         }
                     }
@@ -92,11 +98,11 @@ class CPU{
                         imm=stoi(im);
                         reg=stoi(r);
                         if(opcode==LOAD){
-                            Instruction *instr = new Instruction(opcode,first_reg,reg,-1,imm,-1);
+                            Instruction *instr = new Instruction(opcode,first_reg,reg,-1,imm,-1,global_seq_num);
                             instructionQueue.push_back(instr);
                         }
                         else{
-                            Instruction *instr = new Instruction(opcode,-1,first_reg,reg,imm,-1);
+                            Instruction *instr = new Instruction(opcode,-1,first_reg,reg,imm,-1,global_seq_num);
                             instructionQueue.push_back(instr);
                         }
                     }
@@ -128,5 +134,9 @@ class CPU{
                 cout<<"\n\n";
             }
             cout<<endl;
+        }
+
+        bool continueSimulation(){
+            return !(instructionQueue.empty() && rob->isEmpty());
         }
 };

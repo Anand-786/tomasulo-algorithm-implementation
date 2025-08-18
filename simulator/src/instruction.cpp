@@ -21,11 +21,12 @@ class Instruction{
         int src2_reg;
         int imm_val;
         int address;
+        int global_seq_num;
 
     public:
         //Constructor with Initialisation list
-        Instruction(int itype,int dest,int src1,int src2,int imm=-1,int addr=-1): 
-        type(itype), dest_reg(dest), src1_reg(src1), src2_reg(src2), imm_val(imm), address(addr)
+        Instruction(int itype,int dest,int src1,int src2,int imm=-1,int addr=-1,int global_s_n=-1): 
+        type(itype), dest_reg(dest), src1_reg(src1), src2_reg(src2), imm_val(imm), address(addr), global_seq_num(global_s_n)
         {}
 
         //All Getters
@@ -35,6 +36,7 @@ class Instruction{
         int getSrc2Reg() const { return src2_reg; }
         int getImmVal() const { return imm_val; }
         int getAddress() const { return address; }
+        int getGlobal_Seq_Num() const { return global_seq_num; }
 
         //All Setters
         void setType(int val) { type = val; }
@@ -43,6 +45,7 @@ class Instruction{
         void setSrc2Reg(int val) { src2_reg = val; }
         void setImmVal(int val) { imm_val = val; }
         void setAddress(int val) { address = val; }
+        void setGlobal_Seq_Num(int val) { global_seq_num = val; }
 
         int getLatency(int t){
             return latency[t];
