@@ -1,6 +1,7 @@
 #include <bits/stdc++.h>
 #include "instruction.cpp"
 #include "rob.cpp"
+#include "functionalUnit.cpp"
 
 using namespace std;
 
@@ -9,8 +10,13 @@ class CPU{
         deque<Instruction*> instructionQueue;
         int registers[32];
         ROB *rob;
-        int cycle_number;
+        int current_cycle;
         unordered_map<int, int> memory_map;
+        FunctionalUnit *ALU_FU;
+        FunctionalUnit *MUL_FU;
+        FunctionalUnit *DIV_FU;
+        FunctionalUnit *ADDR_FU;
+
 
         vector<string> parseInstruction(string &line){
             string opcode;
@@ -33,7 +39,11 @@ class CPU{
     public:
         CPU(){
             rob=new ROB(20);
-            cycle_number=0;
+            current_cycle=0;
+            ALU_FU = new FunctionalUnit(4, latency[ADD]);
+            MUL_FU = new FunctionalUnit(4, latency[MUL]);
+            DIV_FU = new FunctionalUnit(4, latency[DIV]);
+            ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
         }
         int totalInstructions(){
             return instructionQueue.size();
@@ -145,7 +155,7 @@ class CPU{
         }
 
         void nextCycle(){
-            cycle_number++;
+            current_cycle++;
 
             commit();
             writeCDB();

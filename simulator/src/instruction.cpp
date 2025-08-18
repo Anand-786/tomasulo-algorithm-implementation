@@ -47,10 +47,6 @@ class Instruction{
         void setAddress(int val) { address = val; }
         void setGlobal_Seq_Num(int val) { global_seq_num = val; }
 
-        int getLatency(int t){
-            return latency[t];
-        }
-
         string opcode_for_printing(int val){
             switch (val){
                 case ADD:
