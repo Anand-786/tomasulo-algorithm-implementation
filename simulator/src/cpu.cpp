@@ -148,6 +148,7 @@ class CPU{
             cycle_number++;
 
             commit();
+            writeCDB();
         }
 
         void commit(){
@@ -161,5 +162,9 @@ class CPU{
 
             rob->setIsReady(false);
             rob->incrementHead();
+        }
+
+        void writeCDB(){
+            
         }
 };
