@@ -6,6 +6,8 @@ Gannt chart of program with matplotlib
 branch instructions
 branch prediction basic 2 bit
 cache miss % like 90 percent with penalty of 50cc
+cache L1 modelling with tag matching and index and dirty bit
 branch prediction novel strategy
 superscalar with vector of cdb resize ability
 pipelined FU's
+stats

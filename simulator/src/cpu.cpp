@@ -8,6 +8,7 @@ using namespace std;
 class CPU{
     private:
         deque<Instruction*> instructionQueue;
+        int totalInstructions;
         int registers[32];
         ROB *rob;
         int current_cycle;
@@ -46,7 +47,7 @@ class CPU{
             ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
         }
         int totalInstructions(){
-            return instructionQueue.size();
+            return totalInstructions;
         }
 
         void loadProgram(string &filename){
@@ -123,7 +124,8 @@ class CPU{
                 }
             }
             file.close();
-            cout<<"\nLoaded Instruction Queue from : "<<filename<<"\nTotal Instructions = "<<totalInstructions()<<endl;
+            totalInstructions = instructionQueue.size();
+            cout<<"\nLoaded Instruction Queue from : "<<filename<<"\nTotal Instructions = "<<totalInstructions<<endl;
         }
 
         void printProgram(){
@@ -175,6 +177,36 @@ class CPU{
         }
 
         void writeCDB(){
-            
+            int result_val,result_dest_rob_entry_num;
+            int arbitration = totalInstructions;
+
+            if(ALU_FU->isCompleted()){
+                int temp = ALU_FU->getGlobalSeqNum();
+                if(temp < arbitration)
+                    arbitration = temp;
+            }
+            if(MUL_FU->isCompleted()){
+                int temp = MUL_FU->getGlobalSeqNum();
+                if(temp < arbitration)
+                    arbitration = temp;
+            }
+            if(DIV_FU->isCompleted()){
+                int temp = DIV_FU->getGlobalSeqNum();
+                if(temp < arbitration)
+                    arbitration = temp;
+            }
+            FunctionalUnit *clear;
+            if(arbitration == ALU_FU->getGlobalSeqNum())
+                clear = ALU_FU;
+            else if(arbitration == MUL_FU->getGlobalSeqNum())
+                clear = MUL_FU;
+            else if(arbitration == DIV_FU->getGlobalSeqNum())
+                clear = DIV_FU;
+            else{
+                return;
+            }
+
+            clear->setOccupied(false);
+            clear->markIncomplete();
         }
 };

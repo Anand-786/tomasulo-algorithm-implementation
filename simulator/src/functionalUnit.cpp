@@ -11,6 +11,9 @@ class FunctionalUnit{
         int latency;
         bool completed;
         int cyclesNeeded;
+        int result;
+        int rob_entry_num;
+        int global_seq_num;
 
     public:
         FunctionalUnit(int num_rs, int maxLatency){
@@ -20,6 +23,35 @@ class FunctionalUnit{
             occupied = false;
             latency = maxLatency;
             completed = false;
-            cyclesNeeded = -1;
+            cyclesNeeded = result = rob_entry_num = global_seq_num = -1;
+        }
+
+        void advanceCycle(){
+            cyclesNeeded--;
+        }
+
+        bool isCompleted(){
+            return completed;
+        }
+
+        bool markIfCompleted(){
+            if(!cyclesNeeded)
+                completed = true;
+        }
+
+        int getGlobalSeqNum(){
+            return global_seq_num;
+        }
+
+        void setGlobalSeqNum(int val){
+            global_seq_num = val;
+        }
+
+        void setOccupied(bool val){
+            occupied = val;
+        }
+
+        void markIncomplete(){
+            completed = false;
         }
 };
