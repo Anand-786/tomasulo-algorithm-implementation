@@ -42,7 +42,7 @@ class CPU{
     public:
         CPU(){
             rob = new ROB(20);
-            lsq = new LSQ(10);
+            lsq = new LSQ(10, memory_map);
             current_cycle=0;
             ALU_FU = new FunctionalUnit(4, latency[ADD]);
             MUL_FU = new FunctionalUnit(4, latency[MUL]);

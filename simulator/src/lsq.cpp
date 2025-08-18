@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 #include "agu.cpp"
 using namespace std;
 
@@ -26,13 +27,15 @@ class LSQ{
         vector<LSQEntry*> lsq;
         AGU *agu;
         int size;
+        unordered_map<int, int> memory_map;
     public:
-        LSQ(int sz){
+        LSQ(int sz, unordered_map<int, int> &mm){
             size=sz;
             lsq.resize(size);
             for(int i=0;i<size;i++)
                 lsq[i] = new LSQEntry();
             agu = new AGU();
+            memory_map = mm;
         }
 
         void executeEffectiveAddress(){
@@ -45,6 +48,34 @@ class LSQ{
                     it->addressCalculated = true;
                     break;
                 }
+            }
+        }
+
+        void readMemAccess(){
+            int lsq_index=0;
+            for(auto it: lsq){
+                if(!it->isLoad && !it->addressCalculated){
+                    return;
+                }
+                if(it->isLoad && it->addressCalculated){
+                    int j=lsq_index-1;
+                    int currentEA = it->effectveAddress;
+                    while(j>=0 && (lsq[j]->isLoad || lsq[j]->effectveAddress != currentEA))
+                        j--;
+                    if(j<0){
+                        it->loadedData = memory_map[currentEA];
+                        it->isDataLoaded = true;
+                        it->canWriteToCDB = true;
+                        return;
+                    }
+                    if(lsq[j]->isDataReady){
+                        it->loadedData = lsq[j]->dataToBeStored;
+                        it->isDataLoaded = true;
+                        it->canWriteToCDB = true;
+                        return;
+                    }
+                }
+                lsq_index++;
             }
         }
 };
