@@ -25,6 +25,9 @@ struct LSQEntry{
 class LSQ{
     private:
         vector<LSQEntry*> lsq;
+        int head;
+        int tail;
+        int count;
         AGU *agu;
         int size;
         unordered_map<int, int> memory_map;
@@ -36,10 +39,13 @@ class LSQ{
                 lsq[i] = new LSQEntry();
             agu = new AGU();
             memory_map = mm;
+            head=tail=count=0;
         }
 
         void executeEffectiveAddress(){
-            for(auto it: lsq){
+            int ptr=head;
+            while(ptr!=tail){
+                auto it=lsq[ptr];
                 if(it->isLoad && it->isRegValReady){
                     agu->setImm(it->offset);
                     agu->setRegVal(it->regVal);
@@ -48,21 +54,23 @@ class LSQ{
                     it->addressCalculated = true;
                     break;
                 }
+                ptr=(ptr+1)%size;
             }
         }
 
         void readMemAccess(){
-            int lsq_index=0;
-            for(auto it: lsq){
+            int ptr=head;
+            while(ptr!=tail){
+                auto it=lsq[ptr];
                 if(!it->isLoad && !it->addressCalculated){
                     return;
                 }
                 if(it->isLoad && it->addressCalculated){
-                    int j=lsq_index-1;
+                    int j=(ptr-1+size)%size;
                     int currentEA = it->effectveAddress;
-                    while(j>=0 && (lsq[j]->isLoad || lsq[j]->effectveAddress != currentEA))
-                        j--;
-                    if(j<0){
+                    while(j!=(head-1+size)%size && (lsq[j]->isLoad || lsq[j]->effectveAddress != currentEA))
+                        j=(j-1+size)%size;
+                    if(j==(head-1+size)%size){
                         it->loadedData = memory_map[currentEA];
                         it->isDataLoaded = true;
                         it->canWriteToCDB = true;
@@ -75,7 +83,7 @@ class LSQ{
                         return;
                     }
                 }
-                lsq_index++;
+                ptr=(ptr+1)%size;
             }
         }
 
