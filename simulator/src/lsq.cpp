@@ -89,10 +89,13 @@ class LSQ{
 
         int candidateForCDBWrite(){
             int global_seq_num=-1;
-            for(auto it: lsq){
+            int ptr=head;
+            while(ptr!=tail){
+                auto it = lsq[ptr];
                 if(it->canWriteToCDB){
                     return it->global_seq_num;
                 }
+                ptr=(ptr+1)%size;
             }
         }
 };
