@@ -6,7 +6,6 @@ struct RobEntry{
     int opcode;
     int dest;
     int result;
-    bool exception;
     int global_seq_num;
     bool isReady;
 };
@@ -22,8 +21,10 @@ class ROB{
         ROB(int maxSize){
             size=maxSize;
             rob.resize(size);
-            for(int i=0;i<size;i++)
+            for(int i=0;i<size;i++){
                 rob[i] = new RobEntry();
+                rob[i]->isReady = false;
+            }
             head=tail=0;
             count=0;
         }
@@ -66,5 +67,10 @@ class ROB{
         bool isLoadStoreInstr(){
             int op=rob[head]->opcode;
             return (op>=5);
+        }
+
+        void cdbWrite(int rob_entry_num, int res){
+            rob[rob_entry_num]->result = res;
+            rob[rob_entry_num]->isReady = true;
         }
 };

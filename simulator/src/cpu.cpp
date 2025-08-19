@@ -3,6 +3,7 @@
 #include "rob.cpp"
 #include "functionalUnit.cpp"
 #include "lsq.cpp"
+#include "cdb.cpp"
 
 using namespace std;
 
@@ -13,8 +14,11 @@ class CPU{
         int registers[32];
         ROB *rob;
         LSQ *lsq;
+        CDB *cdb;
         int current_cycle;
         unordered_map<int, int> memory_map;
+        unordered_map<int, vector<ReservationStation*>> waitingRS;
+        unordered_map<int, vector<LSQEntry*>> waitingLS; 
         FunctionalUnit *ALU_FU;
         FunctionalUnit *MUL_FU;
         FunctionalUnit *DIV_FU;
@@ -43,6 +47,7 @@ class CPU{
         CPU(){
             rob = new ROB(20);
             lsq = new LSQ(10, memory_map);
+            cdb = new CDB();
             current_cycle=0;
             ALU_FU = new FunctionalUnit(4, latency[ADD]);
             MUL_FU = new FunctionalUnit(4, latency[MUL]);
@@ -186,9 +191,9 @@ class CPU{
         }
 
         void writeCDB(){
+            //part 1 : arbitration
             int result_val,result_dest_rob_entry_num;
             int arbitration = totalInstructions;
-
             if(ALU_FU->isCompleted()){
                 int temp = ALU_FU->getGlobalSeqNum();
                 if(temp < arbitration)
@@ -204,19 +209,59 @@ class CPU{
                 if(temp < arbitration)
                     arbitration = temp;
             }
-            FunctionalUnit *clear;
-            if(arbitration == ALU_FU->getGlobalSeqNum())
-                clear = ALU_FU;
-            else if(arbitration == MUL_FU->getGlobalSeqNum())
-                clear = MUL_FU;
-            else if(arbitration == DIV_FU->getGlobalSeqNum())
-                clear = DIV_FU;
-            else{
-                return;
+            pair<int, pair<int, int>> lsq_candidate = lsq->candidateForCDBWrite();
+            if(lsq_candidate.first < arbitration){
+                arbitration = lsq_candidate.first;
+                result_val = lsq_candidate.second.first;
+                result_dest_rob_entry_num = lsq_candidate.second.second;
             }
 
-            clear->setOccupied(false);
-            clear->markIncomplete();
+            //part 2 : clearing
+            FunctionalUnit *clear = NULL;
+            if(arbitration == ALU_FU->getGlobalSeqNum()){
+                result_val = ALU_FU->getResult();
+                result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
+                clear = ALU_FU;
+            }
+            else if(arbitration == MUL_FU->getGlobalSeqNum()){
+                result_val = ALU_FU->getResult();
+                result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
+                clear = MUL_FU;
+            }
+            else if(arbitration == DIV_FU->getGlobalSeqNum()){
+                result_val = ALU_FU->getResult();
+                result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
+                clear = DIV_FU;
+            }
+            if(clear){
+                clear->setOccupied(false);
+                clear->markIncomplete();
+            }
+
+            //part 3 : updating all Waiting Reservation Stations
+            if(waitingRS.find(result_dest_rob_entry_num) != waitingRS.end()){
+                for(auto it: waitingRS[result_dest_rob_entry_num]){
+                    if(it->getQj() == result_dest_rob_entry_num){
+                        it->setVj(result_val);
+                        it->setQj(-1);
+                    }
+                    if(it->getQk() == result_dest_rob_entry_num){
+                        it->setVk(result_val);
+                        it->setQk(-1);
+                    }
+                }
+            }
+
+            //part 4 : updating all Waiting Load and Stores
+            if(waitingLS.find(result_dest_rob_entry_num) != waitingLS.end()){
+                for(auto it: waitingLS[result_dest_rob_entry_num]){
+                    it->regVal = result_val;
+                    it->isRegValReady = true;
+                }
+            }
+
+            //part 5 : updating ROB
+            rob->cdbWrite(result_dest_rob_entry_num, result_val);
         }
 
         void memAccess(){

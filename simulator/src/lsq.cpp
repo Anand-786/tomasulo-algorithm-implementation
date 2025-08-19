@@ -13,7 +13,6 @@ struct LSQEntry{
     bool addressCalculated;
     int offset;
     int regVal;
-    int regVal_rob_entry;
     bool isRegValReady;
     int loadedData;
     bool isDataLoaded;
@@ -92,15 +91,19 @@ class LSQ{
             }
         }
 
-        int candidateForCDBWrite(){
+        pair<int,pair<int, int>> candidateForCDBWrite(){
             int global_seq_num=-1;
             int ptr=head;
             while(ptr!=tail){
                 auto it = lsq[ptr];
                 if(it->canWriteToCDB){
-                    return it->global_seq_num;
+                    if(it->isLoad)
+                        return {it->global_seq_num, {it->loadedData, it->rob_entry_num}};
+                    else
+                        return {it->global_seq_num, {it->dataToBeStored, it->rob_entry_num}};
                 }
                 ptr=(ptr+1)%size;
             }
+            return {INT_MAX, {-1,-1}};
         }
 };

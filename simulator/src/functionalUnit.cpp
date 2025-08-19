@@ -26,6 +26,14 @@ class FunctionalUnit{
             cyclesNeeded = result = rob_entry_num = global_seq_num = -1;
         }
 
+        int getResult(){
+            return result;
+        }
+
+        int getRobEntryNum(){
+            return rob_entry_num;
+        }
+
         void advanceCycle(){
             cyclesNeeded--;
         }
