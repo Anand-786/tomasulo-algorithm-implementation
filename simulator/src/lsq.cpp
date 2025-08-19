@@ -42,6 +42,11 @@ class LSQ{
             head=tail=count=0;
         }
 
+        void clearHeadOnCommit(){
+            lsq[head]->valid=false;
+            head=(head+1)%size;
+        }
+
         void executeEffectiveAddress(){
             int ptr=head;
             while(ptr!=tail){

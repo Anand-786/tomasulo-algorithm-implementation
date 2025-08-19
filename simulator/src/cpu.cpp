@@ -172,10 +172,14 @@ class CPU{
             if(!rob->isReady())
                 return;
             
-            if(rob->isRegisterType())
+            if(rob->isRegisterWrite())
                 registers[rob->getDest()] = rob->getResult();
             else
                 memory_map[rob->getDest()] = rob->getResult();
+
+            //free the lsq head
+            if(rob->isLoadStoreInstr())
+                lsq->clearHeadOnCommit();
 
             rob->setIsReady(false);
             rob->incrementHead();

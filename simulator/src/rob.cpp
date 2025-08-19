@@ -44,9 +44,9 @@ class ROB{
             rob[head]->isReady = val;
         }
 
-        bool isRegisterType(){
+        bool isRegisterWrite(){
             int op=rob[head]->opcode;
-            if(op<=4)
+            if(op<=5)
                 return true;
             return false;
         }
@@ -61,5 +61,10 @@ class ROB{
 
         void incrementHead(){
             head = (head+1)%size;
+        }
+
+        bool isLoadStoreInstr(){
+            int op=rob[head]->opcode;
+            return (op>=5);
         }
 };
