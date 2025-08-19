@@ -78,4 +78,13 @@ class LSQ{
                 lsq_index++;
             }
         }
+
+        int candidateForCDBWrite(){
+            int global_seq_num=-1;
+            for(auto it: lsq){
+                if(it->canWriteToCDB){
+                    return it->global_seq_num;
+                }
+            }
+        }
 };
