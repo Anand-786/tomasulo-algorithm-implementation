@@ -171,6 +171,7 @@ class CPU{
             writeCDB();
             memAccess();
             execute();
+            issue();
         }
 
         void commit(){
@@ -218,17 +219,17 @@ class CPU{
 
             //part 2 : clearing
             FunctionalUnit *clear = NULL;
-            if(arbitration == ALU_FU->getGlobalSeqNum()){
+            if(ALU_FU->isCompleted() && arbitration == ALU_FU->getGlobalSeqNum()){
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = ALU_FU;
             }
-            else if(arbitration == MUL_FU->getGlobalSeqNum()){
+            else if(MUL_FU->isCompleted() && arbitration == MUL_FU->getGlobalSeqNum()){
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = MUL_FU;
             }
-            else if(arbitration == DIV_FU->getGlobalSeqNum()){
+            else if(DIV_FU->isCompleted() && arbitration == DIV_FU->getGlobalSeqNum()){
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = DIV_FU;
@@ -269,6 +270,11 @@ class CPU{
         }
 
         void execute(){
-            
+            lsq->executeEffectiveAddress();
+            ALU_FU->executeIfPossible();
+            MUL_FU->executeIfPossible();
+            DIV_FU->executeIfPossible();
         }
+
+        void issue(){}
 };

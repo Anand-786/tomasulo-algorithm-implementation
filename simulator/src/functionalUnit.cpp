@@ -62,4 +62,49 @@ class FunctionalUnit{
         void markIncomplete(){
             completed = false;
         }
+
+        void executeIfPossible(){
+            if(occupied){
+                advanceCycle();
+                markIfCompleted();
+                return;
+            }
+            //assign a new instruction to execute
+            ReservationStation *temp = NULL;
+            int min_glb_seq_num=INT_MAX;
+            for(auto it: reservationStations){
+                if(it->isBusy() && it->isReadyForExecution() && (it->getGlobalSeqNum()<min_glb_seq_num)){
+                    min_glb_seq_num = it->getGlobalSeqNum();
+                    temp = it;
+                }
+            }
+            if(!temp)
+                return;
+            
+            setOccupied(true);
+            markIncomplete();
+            cyclesNeeded = latency-1;
+            switch (temp->getOpcode()){
+                case ADD:
+                    result = temp->getVj() + temp->getVk();
+                    break;
+                case SUB:
+                    result = temp->getVj() - temp->getVk();
+                    break;
+                case ADDI:
+                    result = temp->getVj() + temp->getVk();
+                    break;
+                case MUL:
+                    result = temp->getVj() * temp->getVk();
+                    break;
+                case DIV:
+                    result = temp->getVj() / temp->getVk();
+                    break;
+            }
+            rob_entry_num = temp->getRobEntryNum();
+            global_seq_num = temp->getGlobalSeqNum();
+
+            //mark RS as empty
+            temp->setBusy(false);
+        }
 };

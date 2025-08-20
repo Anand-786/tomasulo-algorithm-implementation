@@ -2,7 +2,6 @@
 #include <vector>
 #include <unordered_map>
 #include "agu.cpp"
-#include <climits>
 using namespace std;
 
 struct LSQEntry{
@@ -51,7 +50,7 @@ class LSQ{
             int ptr=head;
             while(ptr!=tail){
                 auto it=lsq[ptr];
-                if(it->isLoad && it->isRegValReady){
+                if(it->valid && !it->addressCalculated && it->isRegValReady){
                     agu->setImm(it->offset);
                     agu->setRegVal(it->regVal);
                     agu->calculateEffectiveAddress();

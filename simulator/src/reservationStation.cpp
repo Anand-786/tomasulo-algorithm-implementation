@@ -18,6 +18,15 @@ class ReservationStation{
             global_seq_num=-1;
         }
 
+        bool isBusy(){
+            return isBusy;
+        }
+        void setBusy(bool val){
+            busy = val;
+        }
+        int getOpcode(){
+            return opcode;
+        }
         int getVj(){ 
             return Vj;
         }
@@ -41,6 +50,12 @@ class ReservationStation{
         }
         void setQk(int val){
             Qk = val;
+        }
+        int getGlobalSeqNum(){
+            return global_seq_num;
+        }
+        int getRobEntryNum(){
+            return robEntryNum;
         }
         bool isReadyForExecution(){
             if(Qj==-1 && Qk==-1)
