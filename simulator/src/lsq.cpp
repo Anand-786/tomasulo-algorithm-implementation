@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "agu.cpp"
+#include <climits>
 using namespace std;
 
 struct LSQEntry{

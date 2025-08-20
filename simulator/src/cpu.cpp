@@ -265,6 +265,7 @@ class CPU{
         }
 
         void memAccess(){
+            lsq->readMemAccess();
         }
 
         void execute(){
