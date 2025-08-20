@@ -7,6 +7,7 @@ using namespace std;
 class FunctionalUnit{
     private:
         vector<ReservationStation*> reservationStations;
+        unordered_set<int> freeRS;
         bool occupied;
         int latency;
         bool completed;
@@ -20,6 +21,8 @@ class FunctionalUnit{
             reservationStations.resize(num_rs);
             for(int i=0;i<num_rs;i++)
                 reservationStations[i]=new ReservationStation();
+            for(int i=0;i<num_rs;i++)
+                freeRS.insert(i);
             occupied = false;
             latency = maxLatency;
             completed = false;
@@ -71,12 +74,15 @@ class FunctionalUnit{
             }
             //assign a new instruction to execute
             ReservationStation *temp = NULL;
+            int temp_index=-1,index=0;
             int min_glb_seq_num=INT_MAX;
             for(auto it: reservationStations){
                 if(it->isBusy() && it->isReadyForExecution() && (it->getGlobalSeqNum()<min_glb_seq_num)){
                     min_glb_seq_num = it->getGlobalSeqNum();
                     temp = it;
+                    temp_index = index;
                 }
+                index++;
             }
             if(!temp)
                 return;
@@ -106,5 +112,23 @@ class FunctionalUnit{
 
             //mark RS as empty
             temp->setBusy(false);
+            freeRS.insert(temp_index);
+        }
+
+        bool freeRSAvailable(){
+            return !freeRS.empty();
+        }
+
+        void issueInRS(int op, int Qj, int Qk, int Vj, int Vk, int rob_entry, int glb_seq_num){
+            int freeRSIndex = *freeRS.begin();
+            freeRS.erase(freeRSIndex);
+            reservationStations[freeRSIndex]->setBusy(true);
+            reservationStations[freeRSIndex]->setOpcode(op);
+            reservationStations[freeRSIndex]->setQj(Qj);
+            reservationStations[freeRSIndex]->setQk(Qk);
+            reservationStations[freeRSIndex]->setVj(Vj);
+            reservationStations[freeRSIndex]->setVk(Vk);
+            reservationStations[freeRSIndex]->setROBEntryNum(rob_entry);
+            reservationStations[freeRSIndex]->setGlobalSeqNum(glb_seq_num);
         }
 };

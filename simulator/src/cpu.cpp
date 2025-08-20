@@ -9,9 +9,10 @@ using namespace std;
 
 class CPU{
     private:
-        deque<Instruction*> instructionQueue;
+        queue<Instruction*> instructionQueue;
         int totalInstructions;
         int registers[32];
+        int rsi[32];
         ROB *rob;
         LSQ *lsq;
         CDB *cdb;
@@ -53,6 +54,8 @@ class CPU{
             MUL_FU = new FunctionalUnit(4, latency[MUL]);
             DIV_FU = new FunctionalUnit(4, latency[DIV]);
             ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
+            for(int i=0;i<32;i++)
+                rsi[i]=-1;
         }
         int totalInstructions(){
             return totalInstructions;
@@ -91,12 +94,12 @@ class CPU{
                         if(opcode==ADDI){
                             src2=stoi(instruction[3]);
                             Instruction *instr = new Instruction(opcode,dest,src1,-1,src2,-1,global_seq_num);
-                            instructionQueue.push_back(instr);
+                            instructionQueue.push(instr);
                         }
                         else{
                             src2=stoi(instruction[3].substr(1));
                             Instruction *instr = new Instruction(opcode,dest,src1,src2,-1,-1,global_seq_num);
-                            instructionQueue.push_back(instr);
+                            instructionQueue.push(instr);
                         }
                     }
                     else{
@@ -122,11 +125,11 @@ class CPU{
                         reg=stoi(r);
                         if(opcode==LOAD){
                             Instruction *instr = new Instruction(opcode,first_reg,reg,-1,imm,-1,global_seq_num);
-                            instructionQueue.push_back(instr);
+                            instructionQueue.push(instr);
                         }
                         else{
                             Instruction *instr = new Instruction(opcode,-1,first_reg,reg,imm,-1,global_seq_num);
-                            instructionQueue.push_back(instr);
+                            instructionQueue.push(instr);
                         }
                     }
                 }
@@ -138,10 +141,10 @@ class CPU{
 
         void printProgram(){
             cout<<"\nGiven Assembly Program :\n"<<endl;
-            deque<Instruction*> temp=instructionQueue;
+            queue<Instruction*> temp=instructionQueue;
             while(!temp.empty()){
                 Instruction *instr = temp.front();
-                temp.pop_front();
+                temp.pop();
                 int type=instr->getType(), dest=instr->getDestReg(), src1=instr->getSrc1Reg(), src2=instr->getSrc2Reg();
                 int imm=instr->getImmVal(), addr=instr->getAddress();
                 cout<<"Op: "<<instr->opcode_for_printing(type)<<"   ";
@@ -276,5 +279,73 @@ class CPU{
             DIV_FU->executeIfPossible();
         }
 
-        void issue(){}
+        void issue(){
+            Instruction *instrToBeIssued = instructionQueue.front();
+            //check 2 cond: 1. RS/LSQ free slot    2. ROB free slot
+            bool rsAvailable=false,robAvailable=false;
+            robAvailable = !(rob->isFull());
+            if(!robAvailable)
+                return;
+            if(instrToBeIssued->getType() <= DIV){
+                switch (instrToBeIssued->getType()){
+                    case ADD:
+                    case SUB:
+                    case ADDI:
+                        rsAvailable = ALU_FU->freeRSAvailable();
+                        break;
+                    case MUL:
+                        rsAvailable = MUL_FU->freeRSAvailable();
+                        break;
+                    case DIV:
+                        rsAvailable = DIV_FU->freeRSAvailable();
+                        break;
+                }
+                if(!rsAvailable)
+                    return;
+                
+                //We can issue now
+                //part 1: ROB entry
+                int robSlot = rob->issueROBSlot(instrToBeIssued->getType(), instrToBeIssued->getDestReg(), instrToBeIssued->getGlobal_Seq_Num());
+
+                //part 2: RS entry
+                int op = instrToBeIssued->getType();
+                int glb_seq_num = instrToBeIssued->getGlobal_Seq_Num();
+                int Qj,Qk,Vj,Vk;
+                if(rsi[instrToBeIssued->getSrc1Reg()]==-1){
+                    Qj = -1;
+                    Vj = registers[instrToBeIssued->getSrc1Reg()];
+                }
+                else{
+                    Qj = rsi[instrToBeIssued->getSrc1Reg()];
+                    Vj = 0;
+                }
+
+                if(rsi[instrToBeIssued->getSrc2Reg()]==-1){
+                    Qk = -1;
+                    Vk = registers[instrToBeIssued->getSrc2Reg()];
+                }
+                else{
+                    Qk = rsi[instrToBeIssued->getSrc2Reg()];
+                    Vk = 0;
+                }
+
+                switch (instrToBeIssued->getType()){
+                    case ADD:
+                    case SUB:
+                    case ADDI:
+                        ALU_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        break;
+                    case MUL:
+                        MUL_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        break;
+                    case DIV:
+                        DIV_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        break;
+                }
+
+                instructionQueue.pop();
+                return;
+            }
+            else{} 
+        }
 };

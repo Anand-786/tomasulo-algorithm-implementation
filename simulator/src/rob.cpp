@@ -62,6 +62,7 @@ class ROB{
 
         void incrementHead(){
             head = (head+1)%size;
+            count--;
         }
 
         bool isLoadStoreInstr(){
@@ -72,5 +73,16 @@ class ROB{
         void cdbWrite(int rob_entry_num, int res){
             rob[rob_entry_num]->result = res;
             rob[rob_entry_num]->isReady = true;
+        }
+
+        int issueROBSlot(int op, int destination, int glb_seq_num){
+            rob[tail]->opcode = op;
+            rob[tail]->dest = destination;
+            rob[tail]->global_seq_num = glb_seq_num;
+            rob[tail]->isReady = false;
+            int slot = tail;
+            tail=(tail+1)%size;
+            count++;
+            return slot;
         }
 };

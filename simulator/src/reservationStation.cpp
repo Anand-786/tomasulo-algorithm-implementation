@@ -27,6 +27,9 @@ class ReservationStation{
         int getOpcode(){
             return opcode;
         }
+        void setOpcode(int val){
+            opcode = val;
+        }
         int getVj(){ 
             return Vj;
         }
@@ -50,6 +53,12 @@ class ReservationStation{
         }
         void setQk(int val){
             Qk = val;
+        }
+        void setROBEntryNum(int val){
+            robEntryNum = val;
+        }
+        void setGlobalSeqNum(int val){
+            global_seq_num = val;
         }
         int getGlobalSeqNum(){
             return global_seq_num;
