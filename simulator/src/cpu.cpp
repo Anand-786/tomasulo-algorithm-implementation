@@ -175,6 +175,8 @@ class CPU{
             memAccess();
             execute();
             issue();
+
+            cout<<current_cycle<<endl;
         }
 
         void commit(){
@@ -196,7 +198,7 @@ class CPU{
 
         void writeCDB(){
             //part 1 : arbitration
-            int result_val,result_dest_rob_entry_num;
+            int result_val,result_dest_rob_entry_num, result_memory_address=-1;
             int arbitration = totalInstructions;
             if(ALU_FU->isCompleted()){
                 int temp = ALU_FU->getGlobalSeqNum();
@@ -213,11 +215,12 @@ class CPU{
                 if(temp < arbitration)
                     arbitration = temp;
             }
-            pair<int, pair<int, int>> lsq_candidate = lsq->candidateForCDBWrite();
-            if(lsq_candidate.first < arbitration){
-                arbitration = lsq_candidate.first;
+            pair<pair<int, int>, pair<int, int>> lsq_candidate = lsq->candidateForCDBWrite();
+            if(lsq_candidate.first.first < arbitration){
+                arbitration = lsq_candidate.first.first;
                 result_val = lsq_candidate.second.first;
                 result_dest_rob_entry_num = lsq_candidate.second.second;
+                result_memory_address = lsq_candidate.first.second;
             }
 
             //part 2 : clearing
@@ -242,30 +245,41 @@ class CPU{
                 clear->markIncomplete();
             }
 
-            //part 3 : updating all Waiting Reservation Stations
-            if(waitingRS.find(result_dest_rob_entry_num) != waitingRS.end()){
-                for(auto it: waitingRS[result_dest_rob_entry_num]){
-                    if(it->getQj() == result_dest_rob_entry_num){
-                        it->setVj(result_val);
+            //part 3 : load values on CDB
+            cdb->setResult(result_val);
+            cdb->setROBEntryNum(result_dest_rob_entry_num);
+            cdb->setDestinationAddress(result_memory_address);
+
+            //part 4 : updating all Waiting Reservation Stations
+            if(waitingRS.find(cdb->getROBEntryNum()) != waitingRS.end()){
+                for(auto it: waitingRS[cdb->getROBEntryNum()]){
+                    if(it->getQj() == cdb->getROBEntryNum()){
+                        it->setVj(cdb->getResult());
                         it->setQj(-1);
                     }
-                    if(it->getQk() == result_dest_rob_entry_num){
-                        it->setVk(result_val);
+                    if(it->getQk() == cdb->getROBEntryNum()){
+                        it->setVk(cdb->getResult());
                         it->setQk(-1);
                     }
                 }
             }
 
-            //part 4 : updating all Waiting Load and Stores
-            if(waitingLS.find(result_dest_rob_entry_num) != waitingLS.end()){
-                for(auto it: waitingLS[result_dest_rob_entry_num]){
-                    it->regVal = result_val;
-                    it->isRegValReady = true;
+            //part 5 : updating all Waiting Load and Stores
+            if(waitingLS.find(cdb->getROBEntryNum()) != waitingLS.end()){
+                for(auto it: waitingLS[cdb->getROBEntryNum()]){
+                    if(it->reg_rob_entry == cdb->getROBEntryNum()){
+                        it->regVal = cdb->getResult();
+                        it->isRegValReady = true;
+                    }
+                    else{
+                        it->dataToBeStored = cdb->getResult();
+                        it->isDataReady = true;
+                    }
                 }
             }
 
-            //part 5 : updating ROB
-            rob->cdbWrite(result_dest_rob_entry_num, result_val);
+            //part 6 : updating ROB
+            rob->cdbWrite(cdb->getROBEntryNum(), cdb->getResult(), cdb->getDestinationAddress());
         }
 
         void memAccess(){
@@ -282,7 +296,7 @@ class CPU{
         void issue(){
             Instruction *instrToBeIssued = instructionQueue.front();
             //check 2 cond: 1. RS/LSQ free slot    2. ROB free slot
-            bool rsAvailable=false,robAvailable=false;
+            bool rsAvailable=false,robAvailable=false, lsqavailable=false;
             robAvailable = !(rob->isFull());
             if(!robAvailable)
                 return;
@@ -311,6 +325,8 @@ class CPU{
                 int op = instrToBeIssued->getType();
                 int glb_seq_num = instrToBeIssued->getGlobal_Seq_Num();
                 int Qj,Qk,Vj,Vk;
+                bool isSrc1Waiting = false, isSrc2Waiting = false;
+                int src1Rob, src2Rob; 
                 if(rsi[instrToBeIssued->getSrc1Reg()]==-1){
                     Qj = -1;
                     Vj = registers[instrToBeIssued->getSrc1Reg()];
@@ -318,6 +334,8 @@ class CPU{
                 else{
                     Qj = rsi[instrToBeIssued->getSrc1Reg()];
                     Vj = 0;
+                    isSrc1Waiting = true;
+                    src1Rob = Qj;
                 }
 
                 if(rsi[instrToBeIssued->getSrc2Reg()]==-1){
@@ -327,25 +345,98 @@ class CPU{
                 else{
                     Qk = rsi[instrToBeIssued->getSrc2Reg()];
                     Vk = 0;
+                    isSrc2Waiting = true;
+                    src2Rob = Qk;
                 }
 
+                //update RSI for dest register
+                rsi[instrToBeIssued->getDestReg()] = robSlot;
+
+                ReservationStation *alotted;
                 switch (instrToBeIssued->getType()){
                     case ADD:
                     case SUB:
                     case ADDI:
-                        ALU_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        alotted = ALU_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
                         break;
                     case MUL:
-                        MUL_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        alotted = MUL_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
                         break;
                     case DIV:
-                        DIV_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
+                        alotted = DIV_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
                         break;
                 }
+                if(isSrc1Waiting)
+                    waitingRS[src1Rob].push_back(alotted);
+                if(isSrc2Waiting && (src2Rob != src1Rob))
+                    waitingRS[src2Rob].push_back(alotted);
 
                 instructionQueue.pop();
                 return;
             }
-            else{} 
+            else{
+                lsqavailable = !(lsq->isFull());
+                if(!lsqavailable)
+                    return;
+                
+                //We can issue now
+                //part 1: get rob slot
+                int robSlot = rob->issueROBSlot(instrToBeIssued->getType(), instrToBeIssued->getDestReg(), instrToBeIssued->getGlobal_Seq_Num());
+
+                //part 2: LSQ entry
+                int op = instrToBeIssued->getType();
+                int glb_seq_num = instrToBeIssued->getGlobal_Seq_Num();
+                int off = instrToBeIssued->getImmVal();
+                int reg_val,reg_rob, dataStore, data_rob;
+                bool is_reg_ready, is_data_ready;
+                if(op == LOAD){
+                    if(rsi[instrToBeIssued->getSrc1Reg()] == -1){
+                        reg_val = registers[instrToBeIssued->getSrc1Reg()];
+                        reg_rob = -1;
+                        is_reg_ready = true;
+                    }
+                    else{
+                        reg_val = 0;
+                        reg_rob = rsi[instrToBeIssued->getSrc1Reg()];
+                        is_reg_ready = false;
+                    }
+
+                    //update rsi for dest register
+                    rsi[instrToBeIssued->getDestReg()] = robSlot;
+                }
+                else{
+                    if(rsi[instrToBeIssued->getSrc2Reg()] == -1){
+                        reg_val = registers[instrToBeIssued->getSrc2Reg()];
+                        reg_rob = -1;
+                        is_reg_ready = true;
+                    }
+                    else{
+                        reg_val = 0;
+                        reg_rob = rsi[instrToBeIssued->getSrc2Reg()];
+                        is_reg_ready = false;
+                    }
+
+                    if(rsi[instrToBeIssued->getSrc1Reg()] == -1){
+                        dataStore = registers[instrToBeIssued->getSrc1Reg()];
+                        data_rob = -1;
+                        is_data_ready = true;
+                    }
+                    else{
+                        dataStore = 0;
+                        data_rob = rsi[instrToBeIssued->getSrc1Reg()];
+                        is_data_ready = false;
+                    }
+                }
+
+                LSQEntry *alotted = lsq->issueInLSQ((op==LOAD)?true:false, glb_seq_num, robSlot, off, reg_val, reg_rob, is_reg_ready, dataStore, data_rob, is_data_ready);
+
+                if(!is_reg_ready)
+                    waitingLS[reg_rob].push_back(alotted);
+                if((op == STORE) && !is_data_ready)
+                    waitingLS[data_rob].push_back(alotted);
+
+                instructionQueue.pop();
+                return;
+            } 
         }
 };

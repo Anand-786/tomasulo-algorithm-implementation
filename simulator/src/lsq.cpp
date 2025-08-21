@@ -13,10 +13,12 @@ struct LSQEntry{
     bool addressCalculated;
     int offset;
     int regVal;
+    int reg_rob_entry;
     bool isRegValReady;
     int loadedData;
     bool isDataLoaded;
     int dataToBeStored;
+    int data_rob_entry;
     bool isDataReady;
     bool canWriteToCDB;
 };
@@ -91,19 +93,46 @@ class LSQ{
             }
         }
 
-        pair<int,pair<int, int>> candidateForCDBWrite(){
+        pair<pair<int, int>,pair<int, int>> candidateForCDBWrite(){
             int global_seq_num=-1;
             int ptr=head;
             while(ptr!=tail){
                 auto it = lsq[ptr];
                 if(it->canWriteToCDB){
                     if(it->isLoad)
-                        return {it->global_seq_num, {it->loadedData, it->rob_entry_num}};
+                        return {{it->global_seq_num, -1}, {it->loadedData, it->rob_entry_num}};
                     else
-                        return {it->global_seq_num, {it->dataToBeStored, it->rob_entry_num}};
+                        return {{it->global_seq_num, it->effectveAddress}, {it->dataToBeStored, it->rob_entry_num}};
                 }
                 ptr=(ptr+1)%size;
             }
-            return {INT_MAX, {-1,-1}};
+            return {{INT_MAX, -1}, {-1,-1}};
+        }
+
+        bool isFull(){
+            return (count==size);
+        }
+
+        LSQEntry* issueInLSQ(bool isL, int glb_seq_num, int rob_entry, int off, int reg_val, int reg_rob,
+                        bool is_reg_ready, int dataStore, int data_rob, bool is_data_ready){
+            lsq[tail]->valid = true;
+            lsq[tail]->isLoad = isL;
+            lsq[tail]->global_seq_num = glb_seq_num;
+            lsq[tail]->rob_entry_num = rob_entry;
+            lsq[tail]->addressCalculated = false;
+            lsq[tail]->offset = off;
+            lsq[tail]->reg_rob_entry = reg_rob;
+            lsq[tail]->regVal = reg_val;
+            lsq[tail]->isRegValReady = is_reg_ready;
+            lsq[tail]->isDataLoaded = false;
+            lsq[tail]->dataToBeStored = dataStore;
+            lsq[tail]->data_rob_entry = data_rob;
+            lsq[tail]->isDataReady = is_data_ready;
+            lsq[tail]->canWriteToCDB = false;
+
+            LSQEntry *alotted = lsq[tail];
+            tail = (tail+1)%size;
+            count++;
+            return alotted;
         }
 };

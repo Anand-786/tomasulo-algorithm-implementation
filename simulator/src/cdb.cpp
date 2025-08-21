@@ -5,6 +5,7 @@ class CDB{
     private:
         int rob_entry_number;
         int result;
+        int destinationAddress;
     
     public:
         int getROBEntryNum(){
@@ -21,5 +22,13 @@ class CDB{
 
         int setResult(int val){
             result = val;
+        }
+
+        int getDestinationAddress(){
+            return destinationAddress;
+        }
+
+        void setDestinationAddress(int val){
+            destinationAddress = val;
         }
 };

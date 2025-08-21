@@ -119,7 +119,7 @@ class FunctionalUnit{
             return !freeRS.empty();
         }
 
-        void issueInRS(int op, int Qj, int Qk, int Vj, int Vk, int rob_entry, int glb_seq_num){
+        ReservationStation* issueInRS(int op, int Qj, int Qk, int Vj, int Vk, int rob_entry, int glb_seq_num){
             int freeRSIndex = *freeRS.begin();
             freeRS.erase(freeRSIndex);
             reservationStations[freeRSIndex]->setBusy(true);
@@ -130,5 +130,6 @@ class FunctionalUnit{
             reservationStations[freeRSIndex]->setVk(Vk);
             reservationStations[freeRSIndex]->setROBEntryNum(rob_entry);
             reservationStations[freeRSIndex]->setGlobalSeqNum(glb_seq_num);
+            return reservationStations[freeRSIndex];
         }
 };

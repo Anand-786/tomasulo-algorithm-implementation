@@ -70,9 +70,11 @@ class ROB{
             return (op>=5);
         }
 
-        void cdbWrite(int rob_entry_num, int res){
+        void cdbWrite(int rob_entry_num, int res, int destinationAddress){
             rob[rob_entry_num]->result = res;
             rob[rob_entry_num]->isReady = true;
+            if((rob[rob_entry_num]->opcode == STORE) && (destinationAddress != -1))
+                rob[rob_entry_num]->dest = destinationAddress;
         }
 
         int issueROBSlot(int op, int destination, int glb_seq_num){

@@ -12,5 +12,6 @@ int main(){
     cpu->printProgram();
 
     while(cpu->continueSimulation()){
+        cpu->nextCycle();
     }
 }
