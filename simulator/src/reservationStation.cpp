@@ -19,7 +19,7 @@ class ReservationStation{
         }
 
         bool isBusy(){
-            return isBusy;
+            return busy;
         }
         void setBusy(bool val){
             busy = val;

@@ -57,9 +57,6 @@ class CPU{
             for(int i=0;i<32;i++)
                 rsi[i]=-1;
         }
-        int totalInstructions(){
-            return totalInstructions;
-        }
 
         void loadProgram(string &filename){
             ifstream file(filename);
@@ -170,13 +167,19 @@ class CPU{
         void nextCycle(){
             current_cycle++;
 
+            cout<<current_cycle<<" ";
             commit();
+            cout<<current_cycle<<" ";
             writeCDB();
+            cout<<current_cycle<<" ";
             memAccess();
+            cout<<current_cycle<<" ";
             execute();
+            cout<<current_cycle<<" ";
             issue();
+            cout<<current_cycle<<" ";
 
-            cout<<current_cycle<<endl;
+            cout<<endl;
         }
 
         void commit(){

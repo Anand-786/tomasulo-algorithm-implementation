@@ -16,11 +16,11 @@ class CDB{
             return result;
         }
 
-        int setROBEntryNum(int val){
+        void setROBEntryNum(int val){
             rob_entry_number = val;
         }
 
-        int setResult(int val){
+        void setResult(int val){
             result = val;
         }
 

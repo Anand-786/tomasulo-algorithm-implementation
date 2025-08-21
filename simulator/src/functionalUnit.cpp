@@ -45,7 +45,7 @@ class FunctionalUnit{
             return completed;
         }
 
-        bool markIfCompleted(){
+        void markIfCompleted(){
             if(!cyclesNeeded)
                 completed = true;
         }
