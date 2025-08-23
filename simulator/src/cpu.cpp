@@ -143,7 +143,7 @@ class CPU{
                 Instruction *instr = temp.front();
                 temp.pop();
                 int type=instr->getType(), dest=instr->getDestReg(), src1=instr->getSrc1Reg(), src2=instr->getSrc2Reg();
-                int imm=instr->getImmVal(), addr=instr->getAddress();
+                int imm=instr->getImmVal(), addr=instr->getAddress(), global_seq_num=instr->getGlobal_Seq_Num();
                 cout<<"Op: "<<instr->opcode_for_printing(type)<<"   ";
                 if(dest!=-1)
                     cout<<"Dest: R"<<dest<<"   ";
@@ -155,6 +155,8 @@ class CPU{
                     cout<<"Imm: "<<imm<<"  ";
                 if(addr!=-1)
                     cout<<"Address: "<<addr<<"  ";
+                if(global_seq_num!=-1)
+                    cout<<"SEQ num: "<<global_seq_num<<"  ";
                 cout<<"\n\n";
             }
             cout<<endl;
@@ -167,17 +169,12 @@ class CPU{
         void nextCycle(){
             current_cycle++;
 
-            cout<<current_cycle<<" ";
+            cout<<"Cycel no : "<<current_cycle<<endl;
             commit();
-            cout<<current_cycle<<" ";
             writeCDB();
-            cout<<current_cycle<<" ";
             memAccess();
-            cout<<current_cycle<<" ";
             execute();
-            cout<<current_cycle<<" ";
             issue();
-            cout<<current_cycle<<" ";
 
             cout<<endl;
         }
@@ -203,6 +200,7 @@ class CPU{
             //part 1 : arbitration
             int result_val,result_dest_rob_entry_num, result_memory_address=-1;
             int arbitration = totalInstructions;
+            bool isCDBWritePosssible = false;
             if(ALU_FU->isCompleted()){
                 int temp = ALU_FU->getGlobalSeqNum();
                 if(temp < arbitration)
@@ -224,6 +222,7 @@ class CPU{
                 result_val = lsq_candidate.second.first;
                 result_dest_rob_entry_num = lsq_candidate.second.second;
                 result_memory_address = lsq_candidate.first.second;
+                isCDBWritePosssible =true;
             }
 
             //part 2 : clearing
@@ -232,21 +231,26 @@ class CPU{
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = ALU_FU;
+                isCDBWritePosssible =true;
             }
             else if(MUL_FU->isCompleted() && arbitration == MUL_FU->getGlobalSeqNum()){
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = MUL_FU;
+                isCDBWritePosssible =true;
             }
             else if(DIV_FU->isCompleted() && arbitration == DIV_FU->getGlobalSeqNum()){
                 result_val = ALU_FU->getResult();
                 result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
                 clear = DIV_FU;
+                isCDBWritePosssible =true;
             }
             if(clear){
                 clear->setOccupied(false);
                 clear->markIncomplete();
             }
+            if(!isCDBWritePosssible)
+                return;
 
             //part 3 : load values on CDB
             cdb->setResult(result_val);
