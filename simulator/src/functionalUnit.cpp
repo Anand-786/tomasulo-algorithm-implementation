@@ -84,12 +84,14 @@ class FunctionalUnit{
                 }
                 index++;
             }
-            if(!temp)
+            if(!temp){
                 return;
+            }
             
             setOccupied(true);
             markIncomplete();
             cyclesNeeded = latency-1;
+            markIfCompleted();
             switch (temp->getOpcode()){
                 case ADD:
                     result = temp->getVj() + temp->getVk();
@@ -111,7 +113,7 @@ class FunctionalUnit{
             global_seq_num = temp->getGlobalSeqNum();
 
             //mark RS as empty
-            temp->setBusy(false);
+            reservationStations[temp_index]->setBusy(false);
             freeRS.insert(temp_index);
         }
 
@@ -130,6 +132,7 @@ class FunctionalUnit{
             reservationStations[freeRSIndex]->setVk(Vk);
             reservationStations[freeRSIndex]->setROBEntryNum(rob_entry);
             reservationStations[freeRSIndex]->setGlobalSeqNum(glb_seq_num);
+            cout<<reservationStations[freeRSIndex]->isBusy()<<endl;
             return reservationStations[freeRSIndex];
         }
 };

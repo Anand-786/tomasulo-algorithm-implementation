@@ -56,6 +56,7 @@ class CPU{
             ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
             for(int i=0;i<32;i++)
                 rsi[i]=-1;
+            registers[0]=1;
         }
 
         void loadProgram(string &filename){
@@ -169,24 +170,33 @@ class CPU{
         void nextCycle(){
             current_cycle++;
 
-            cout<<"Cycel no : "<<current_cycle<<endl;
+            cout<<"Cycle no : "<<current_cycle<<endl<<endl;
             commit();
+            cout<<"commit done.\n";
             writeCDB();
+            cout<<"writecdb done.\n";
             memAccess();
+            cout<<"mem access done.\n";
             execute();
+            cout<<"execute done.\n";
             issue();
+            cout<<"issue done.\n";
 
             cout<<endl;
         }
 
         void commit(){
-            if(!rob->isReady())
+            if(!rob->isReady()){
                 return;
+            }
             
-            if(rob->isRegisterWrite())
+            if(rob->isRegisterWrite()){
                 registers[rob->getDest()] = rob->getResult();
-            else
+                rsi[rob->getDest()] = -1;
+            }
+            else{
                 memory_map[rob->getDest()] = rob->getResult();
+            }
 
             //free the lsq head
             if(rob->isLoadStoreInstr())
@@ -199,7 +209,7 @@ class CPU{
         void writeCDB(){
             //part 1 : arbitration
             int result_val,result_dest_rob_entry_num, result_memory_address=-1;
-            int arbitration = totalInstructions;
+            int arbitration = totalInstructions+1;
             bool isCDBWritePosssible = false;
             if(ALU_FU->isCompleted()){
                 int temp = ALU_FU->getGlobalSeqNum();
@@ -216,12 +226,13 @@ class CPU{
                 if(temp < arbitration)
                     arbitration = temp;
             }
-            pair<pair<int, int>, pair<int, int>> lsq_candidate = lsq->candidateForCDBWrite();
-            if(lsq_candidate.first.first < arbitration){
-                arbitration = lsq_candidate.first.first;
-                result_val = lsq_candidate.second.first;
-                result_dest_rob_entry_num = lsq_candidate.second.second;
-                result_memory_address = lsq_candidate.first.second;
+            vector<int> lsq_candidate = lsq->candidateForCDBWrite();
+            int possible_lsq_write_num = lsq_candidate[4];
+            if(lsq_candidate[0] < arbitration){
+                arbitration = lsq_candidate[0];
+                result_val = lsq_candidate[2];
+                result_dest_rob_entry_num = lsq_candidate[3];
+                result_memory_address = lsq_candidate[1];
                 isCDBWritePosssible =true;
             }
 
@@ -234,23 +245,26 @@ class CPU{
                 isCDBWritePosssible =true;
             }
             else if(MUL_FU->isCompleted() && arbitration == MUL_FU->getGlobalSeqNum()){
-                result_val = ALU_FU->getResult();
-                result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
+                result_val = MUL_FU->getResult();
+                result_dest_rob_entry_num = MUL_FU->getRobEntryNum();
                 clear = MUL_FU;
                 isCDBWritePosssible =true;
             }
             else if(DIV_FU->isCompleted() && arbitration == DIV_FU->getGlobalSeqNum()){
-                result_val = ALU_FU->getResult();
-                result_dest_rob_entry_num = ALU_FU->getRobEntryNum();
+                result_val = DIV_FU->getResult();
+                result_dest_rob_entry_num = DIV_FU->getRobEntryNum();
                 clear = DIV_FU;
                 isCDBWritePosssible =true;
             }
+            if(!isCDBWritePosssible)
+                return;
             if(clear){
                 clear->setOccupied(false);
                 clear->markIncomplete();
             }
-            if(!isCDBWritePosssible)
-                return;
+            else{
+                lsq->markWrittenOnCDB(possible_lsq_write_num);
+            }
 
             //part 3 : load values on CDB
             cdb->setResult(result_val);
@@ -301,12 +315,15 @@ class CPU{
         }
 
         void issue(){
+            if(instructionQueue.empty())
+                return;
             Instruction *instrToBeIssued = instructionQueue.front();
             //check 2 cond: 1. RS/LSQ free slot    2. ROB free slot
             bool rsAvailable=false,robAvailable=false, lsqavailable=false;
             robAvailable = !(rob->isFull());
-            if(!robAvailable)
+            if(!robAvailable){
                 return;
+            }
             if(instrToBeIssued->getType() <= DIV){
                 switch (instrToBeIssued->getType()){
                     case ADD:
@@ -321,12 +338,14 @@ class CPU{
                         rsAvailable = DIV_FU->freeRSAvailable();
                         break;
                 }
-                if(!rsAvailable)
+                if(!rsAvailable){
                     return;
+                }
                 
                 //We can issue now
                 //part 1: ROB entry
                 int robSlot = rob->issueROBSlot(instrToBeIssued->getType(), instrToBeIssued->getDestReg(), instrToBeIssued->getGlobal_Seq_Num());
+                cout<<"ROB slot :"<<robSlot<<endl;
 
                 //part 2: RS entry
                 int op = instrToBeIssued->getType();
@@ -341,19 +360,34 @@ class CPU{
                 else{
                     Qj = rsi[instrToBeIssued->getSrc1Reg()];
                     Vj = 0;
-                    isSrc1Waiting = true;
-                    src1Rob = Qj;
+                    if(rob->isValueAfterBroadcastReady(Qj)){
+                        Vj = rob->getReadyResultAfterBroadcast(Qj);
+                        Qj = -1;
+                    }
+                    else{
+                        isSrc1Waiting = true;
+                        src1Rob = Qj;
+                    }
                 }
 
-                if(rsi[instrToBeIssued->getSrc2Reg()]==-1){
+                if((instrToBeIssued->getType() == ADDI) || rsi[instrToBeIssued->getSrc2Reg()]==-1){
                     Qk = -1;
-                    Vk = registers[instrToBeIssued->getSrc2Reg()];
+                    if(instrToBeIssued->getType() == ADDI)
+                        Vk = instrToBeIssued->getImmVal();
+                    else
+                        Vk = registers[instrToBeIssued->getSrc2Reg()];
                 }
                 else{
                     Qk = rsi[instrToBeIssued->getSrc2Reg()];
                     Vk = 0;
-                    isSrc2Waiting = true;
-                    src2Rob = Qk;
+                    if(rob->isValueAfterBroadcastReady(Qk)){
+                        Vk = rob->getReadyResultAfterBroadcast(Qk);
+                        Qk = -1;
+                    }
+                    else{
+                        isSrc2Waiting = true;
+                        src2Rob = Qk;
+                    }
                 }
 
                 //update RSI for dest register
@@ -405,7 +439,14 @@ class CPU{
                     else{
                         reg_val = 0;
                         reg_rob = rsi[instrToBeIssued->getSrc1Reg()];
-                        is_reg_ready = false;
+                        if(rob->isValueAfterBroadcastReady(reg_rob)){
+                            reg_val = rob->getReadyResultAfterBroadcast(reg_rob);
+                            reg_rob = -1;
+                            is_reg_ready = true;
+                        }
+                        else{
+                            is_reg_ready = false;
+                        }
                     }
 
                     //update rsi for dest register
@@ -420,7 +461,14 @@ class CPU{
                     else{
                         reg_val = 0;
                         reg_rob = rsi[instrToBeIssued->getSrc2Reg()];
-                        is_reg_ready = false;
+                        if(rob->isValueAfterBroadcastReady(reg_rob)){
+                            reg_val = rob->getReadyResultAfterBroadcast(reg_rob);
+                            reg_rob = -1;
+                            is_reg_ready = true;
+                        }
+                        else{
+                            is_reg_ready = false;
+                        }
                     }
 
                     if(rsi[instrToBeIssued->getSrc1Reg()] == -1){
@@ -431,7 +479,14 @@ class CPU{
                     else{
                         dataStore = 0;
                         data_rob = rsi[instrToBeIssued->getSrc1Reg()];
-                        is_data_ready = false;
+                        if(rob->isValueAfterBroadcastReady(data_rob)){
+                            dataStore = rob->getReadyResultAfterBroadcast(data_rob);
+                            data_rob = -1;
+                            is_data_ready = true;
+                        }
+                        else{
+                            is_data_ready = false;
+                        }
                     }
                 }
 

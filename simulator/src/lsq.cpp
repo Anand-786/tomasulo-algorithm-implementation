@@ -21,6 +21,7 @@ struct LSQEntry{
     int data_rob_entry;
     bool isDataReady;
     bool canWriteToCDB;
+    bool isWrittenToCDB;
 };
 
 class LSQ{
@@ -93,20 +94,29 @@ class LSQ{
             }
         }
 
-        pair<pair<int, int>,pair<int, int>> candidateForCDBWrite(){
+        bool canBeWrittenToCDB(LSQEntry *temp){
+            if(temp->isLoad)
+                return temp->canWriteToCDB;
+            if(temp->addressCalculated && temp->isDataReady)
+                return temp->canWriteToCDB = true;
+            return false;
+        }
+
+        vector<int> candidateForCDBWrite(){
             int global_seq_num=-1;
             int ptr=head;
             while(ptr!=tail){
                 auto it = lsq[ptr];
-                if(it->canWriteToCDB){
+                if(!it->isWrittenToCDB && canBeWrittenToCDB(it)){
                     if(it->isLoad)
-                        return {{it->global_seq_num, -1}, {it->loadedData, it->rob_entry_num}};
-                    else
-                        return {{it->global_seq_num, it->effectveAddress}, {it->dataToBeStored, it->rob_entry_num}};
+                        return {it->global_seq_num, -1, it->loadedData, it->rob_entry_num, ptr};
+                    else{
+                        return {it->global_seq_num, it->effectveAddress, it->dataToBeStored, it->rob_entry_num, ptr};
+                    }
                 }
                 ptr=(ptr+1)%size;
             }
-            return {{INT_MAX, -1}, {-1,-1}};
+            return {INT_MAX, -1, -1, -1, -1};
         }
 
         bool isFull(){
@@ -129,10 +139,15 @@ class LSQ{
             lsq[tail]->data_rob_entry = data_rob;
             lsq[tail]->isDataReady = is_data_ready;
             lsq[tail]->canWriteToCDB = false;
+            lsq[tail]->isWrittenToCDB = false;
 
             LSQEntry *alotted = lsq[tail];
             tail = (tail+1)%size;
             count++;
             return alotted;
+        }
+
+        void markWrittenOnCDB(int index){
+            lsq[index]->isWrittenToCDB = true;
         }
 };

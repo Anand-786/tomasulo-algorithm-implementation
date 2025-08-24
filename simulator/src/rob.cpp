@@ -56,8 +56,24 @@ class ROB{
             return rob[head]->dest;
         }
 
+        int getSize(){
+            return count;
+        }
+
         int getResult(){
             return rob[head]->result;
+        }
+
+        int getRobIndex(){
+            return head;
+        }
+
+        bool isValueAfterBroadcastReady(int index){
+            return rob[index]->isReady;
+        }
+
+        int getReadyResultAfterBroadcast(int index){
+            return rob[index]->result;
         }
 
         void incrementHead(){

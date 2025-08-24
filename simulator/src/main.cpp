@@ -11,7 +11,11 @@ int main(){
     cpu->loadProgram(filename);
     cpu->printProgram();
 
+    cout<<"Simultaion Starts...\n\n";
+
     while(cpu->continueSimulation()){
         cpu->nextCycle();
     }
+
+    cout<<"Simulation Ended."<<endl;
 }
