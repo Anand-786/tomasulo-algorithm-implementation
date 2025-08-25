@@ -54,9 +54,10 @@ class CPU{
             MUL_FU = new FunctionalUnit(4, latency[MUL]);
             DIV_FU = new FunctionalUnit(4, latency[DIV]);
             ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
-            for(int i=0;i<32;i++)
+            for(int i=0;i<32;i++){
                 rsi[i]=-1;
-            registers[0]=1;
+                registers[i]=1;
+            }
         }
 
         void loadProgram(string &filename){
