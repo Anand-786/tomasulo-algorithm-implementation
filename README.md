@@ -1,4 +1,4 @@
-👉 Related project: [Victim Cache Evaluation in gem5](https://github.com/Anand-786/gem5-victim-cache)
+👉 Related project: [Victim Cache Analysis in gem5](https://github.com/Anand-786/gem5-victim-cache)
 
 
 # Tomasulo Algorithm Implementation
