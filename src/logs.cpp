@@ -96,7 +96,7 @@ class Logs{
                 trace<<string(leftpad, '-')<<msg<<string(rightpad, '-')<<"\n\n";
 
                 // --- Instruction Status ---
-                trace << "**Instruction Status**\n";
+                trace << "Instruction Status\n";
                 trace << left << setw(25) << "Instruction" << "| "
                     << setw(7) << "Issue" << "| "
                     << setw(11) << "ExecStart" << "| "
@@ -115,12 +115,12 @@ class Logs{
                 trace << "\n";
 
                 // --- Reservation Stations ---
-                print_fu_reservations(trace, "**Integer-ALU Reservation Stations**", ALU_FU);
-                print_fu_reservations(trace, "**Multiplier Reservation Stations**", MUL_FU);
-                print_fu_reservations(trace, "**Divider Reservation Stations**", DIV_FU);
+                print_fu_reservations(trace, "Integer-ALU Reservation Stations", ALU_FU);
+                print_fu_reservations(trace, "Multiplier Reservation Stations", MUL_FU);
+                print_fu_reservations(trace, "Divider Reservation Stations", DIV_FU);
 
                 // --- Reorder Buffer (ROB) ---
-                trace << "**Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]**\n";
+                trace << "Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]\n";
                 trace << left
                     << setw(8) << "Entry" << "| "
                     << setw(8) << "Type" << "| "
@@ -144,7 +144,7 @@ class Logs{
                 trace << "\n";
 
                 // --- Load/Store Queue (LSQ) ---
-                trace << "**Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]**\n";
+                trace << "Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]\n";
                 trace << left
                     << setw(8) << "Entry" << "| "
                     << setw(8) << "Type" << "| "
@@ -178,14 +178,14 @@ class Logs{
                 trace << "\n";
 
                 // --- Register Status ---
-                trace << "**Register File & Status**\n";
+                trace << "Register File & Status\n";
                 for(int i = 0; i < 32; ++i) trace << " R" << left << setw(6) << i << "|"; trace << "\n";
                 trace << setfill('-') << setw(288) << "" << setfill(' ') << "\n";
                 for(int i = 0; i < 32; ++i) trace << " " << left << setw(7) << (rsi[i] == -1 ? "Ready" : "ROB "+to_string(rsi[i])) << "|"; trace << "\n";
                 for(int i = 0; i < 32; ++i) trace << " " << left << setw(7) << (rsi[i] == -1 ? to_string(registers[i]) : "-") << "|"; trace << "\n\n";
 
                 // --- Memory ---
-                trace << "**Memory State**\n";
+                trace << "Memory State\n";
                 bool empty = true;
                 for (auto const& [address, value] : *memory_map) {
                     empty = false;
