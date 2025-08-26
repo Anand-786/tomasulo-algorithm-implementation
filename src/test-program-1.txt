@@ -1,0 +1,6 @@
+1. ADDI R1, R0, 100    // R1 = 100
+2. ADDI R2, R0, 10     // R2 = 10
+3. DIV  R3, R1, R2     // R3 = 100 / 10 = 10 (10 cycle latency)
+4. ADDI R4, R0, 5      // R4 = 5 (Independent)
+5. ADD  R5, R4, R1     // R5 = 5 + 100 = 105 (Independent of DIV)
+6. MUL  R6, R3, R4     // R6 = 10 * 5 = 50 (Dependent on DIV)

@@ -29,6 +29,10 @@ class ROB{
             count=0;
         }
 
+        int getTotalSize(){
+            return size;
+        }
+
         bool isFull(){
             return (count==size);
         }
@@ -84,6 +88,14 @@ class ROB{
         bool isLoadStoreInstr(){
             int op=rob[head]->opcode;
             return (op>=5);
+        }
+
+        int getCount(){
+            return count;
+        }
+
+        RobEntry* getROBEntry(int index){
+            return rob[index];
         }
 
         void cdbWrite(int rob_entry_num, int res, int destinationAddress){

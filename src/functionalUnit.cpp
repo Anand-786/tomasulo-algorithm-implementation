@@ -66,6 +66,10 @@ class FunctionalUnit{
             completed = false;
         }
 
+        vector<ReservationStation*> getRS(){
+            return reservationStations;
+        }
+
         void executeIfPossible(){
             if(occupied){
                 advanceCycle();
@@ -132,7 +136,6 @@ class FunctionalUnit{
             reservationStations[freeRSIndex]->setVk(Vk);
             reservationStations[freeRSIndex]->setROBEntryNum(rob_entry);
             reservationStations[freeRSIndex]->setGlobalSeqNum(glb_seq_num);
-            cout<<reservationStations[freeRSIndex]->isBusy()<<endl;
             return reservationStations[freeRSIndex];
         }
 };

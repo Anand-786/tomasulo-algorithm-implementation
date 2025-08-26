@@ -7,6 +7,15 @@
 
 using namespace std;
 
+struct instructionLog{
+    string instruction;
+    int issueCycle;
+    int executeStartCycle;
+    int memAccessCycle;
+    int writeCDBCycle;
+    int commitCycle;
+};
+
 class CPU{
     private:
         queue<Instruction*> instructionQueue;
@@ -20,6 +29,7 @@ class CPU{
         unordered_map<int, int> memory_map;
         unordered_map<int, vector<ReservationStation*>> waitingRS;
         unordered_map<int, vector<LSQEntry*>> waitingLS; 
+        map<int, instructionLog*> instructionLogs;
         FunctionalUnit *ALU_FU;
         FunctionalUnit *MUL_FU;
         FunctionalUnit *DIV_FU;
@@ -60,6 +70,10 @@ class CPU{
             }
         }
 
+        int getCurrentCycle(){
+            return current_cycle;
+        }
+
         void loadProgram(string &filename){
             ifstream file(filename);
             if (!file.is_open()) {
@@ -72,6 +86,17 @@ class CPU{
                 if (!line.empty() && line[0] != '#'){
                     global_seq_num++;
                     vector<string> instruction = parseInstruction(line);
+                    
+                    //Initializing instruction logs for logging.
+                    instructionLog *newInstruction = new instructionLog();
+                    newInstruction->instruction = line;
+                    newInstruction->issueCycle = 0;
+                    newInstruction->executeStartCycle = 0;
+                    newInstruction->memAccessCycle = 0;
+                    newInstruction->writeCDBCycle = 0;
+                    newInstruction->commitCycle = 0;
+                    instructionLogs[global_seq_num] = newInstruction;
+
                     if(instruction.size()>3){
                         int opcode;
                         string op=instruction[0];
@@ -135,7 +160,6 @@ class CPU{
             }
             file.close();
             totalInstructions = instructionQueue.size();
-            cout<<"\nLoaded Instruction Queue from : "<<filename<<"\nTotal Instructions = "<<totalInstructions<<endl;
         }
 
         void printProgram(){
@@ -170,20 +194,11 @@ class CPU{
 
         void nextCycle(){
             current_cycle++;
-
-            cout<<"Cycle no : "<<current_cycle<<endl<<endl;
             commit();
-            cout<<"commit done.\n";
             writeCDB();
-            cout<<"writecdb done.\n";
             memAccess();
-            cout<<"mem access done.\n";
             execute();
-            cout<<"execute done.\n";
             issue();
-            cout<<"issue done.\n";
-
-            cout<<endl;
         }
 
         void commit(){
@@ -346,7 +361,6 @@ class CPU{
                 //We can issue now
                 //part 1: ROB entry
                 int robSlot = rob->issueROBSlot(instrToBeIssued->getType(), instrToBeIssued->getDestReg(), instrToBeIssued->getGlobal_Seq_Num());
-                cout<<"ROB slot :"<<robSlot<<endl;
 
                 //part 2: RS entry
                 int op = instrToBeIssued->getType();
@@ -502,4 +516,44 @@ class CPU{
                 return;
             } 
         }
+
+        int* getRegisters() {
+        return registers;
+    }
+
+    int* getRSI() {
+        return rsi;
+    }
+
+    ROB* getROB() {
+        return rob;
+    }
+
+    LSQ* getLSQ() {
+        return lsq;
+    }
+
+    CDB* getCDB() {
+        return cdb;
+    }
+
+    FunctionalUnit* getAluFU() {
+        return ALU_FU;
+    }
+
+    FunctionalUnit* getMulFU() {
+        return MUL_FU;
+    }
+
+    FunctionalUnit* getDivFU() {
+        return DIV_FU;
+    }
+
+    unordered_map<int, int>* getMemoryMap() {
+        return &memory_map;
+    }
+
+    map<int, instructionLog*>* getInstructionLogs() {
+        return &instructionLogs;
+    }
 };

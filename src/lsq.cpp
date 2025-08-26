@@ -44,6 +44,22 @@ class LSQ{
             head=tail=count=0;
         }
 
+        int getLSQIndex(){
+            return head;
+        }
+
+        int getSize(){
+            return size;
+        }
+
+        int getCount(){
+            return count;
+        }
+
+        LSQEntry* getLSQEntry(int index){
+            return lsq[index];
+        }
+
         void clearHeadOnCommit(){
             lsq[head]->valid=false;
             head=(head+1)%size;
