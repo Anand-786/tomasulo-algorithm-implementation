@@ -213,6 +213,8 @@ class CPU{
             else{
                 memory_map[rob->getDest()] = rob->getResult();
             }
+            //update commit cycle
+            instructionLogs[rob->getGlobalSeqNum()]->commitCycle = current_cycle;
 
             //free the lsq head
             if(rob->isLoadStoreInstr())
@@ -281,6 +283,8 @@ class CPU{
             else{
                 lsq->markWrittenOnCDB(possible_lsq_write_num);
             }
+            //update the writeCDB cycle
+            instructionLogs[arbitration]->writeCDBCycle = current_cycle;
 
             //part 3 : load values on CDB
             cdb->setResult(result_val);
@@ -320,14 +324,24 @@ class CPU{
         }
 
         void memAccess(){
-            lsq->readMemAccess();
+            int glb = lsq->readMemAccess();
+            if(glb!=-1)
+                instructionLogs[glb]->memAccessCycle = current_cycle;
         }
 
         void execute(){
-            lsq->executeEffectiveAddress();
-            ALU_FU->executeIfPossible();
-            MUL_FU->executeIfPossible();
-            DIV_FU->executeIfPossible();
+            int glb_lsq = lsq->executeEffectiveAddress();
+            if(glb_lsq!=-1)
+                instructionLogs[glb_lsq]->executeStartCycle = current_cycle;
+            int glb_alu = ALU_FU->executeIfPossible();
+            if(glb_alu!=-1)
+                instructionLogs[glb_alu]->executeStartCycle = current_cycle;
+            int glb_mul = MUL_FU->executeIfPossible();
+            if(glb_mul!=-1)
+                instructionLogs[glb_mul]->executeStartCycle = current_cycle;
+            int glb_div = DIV_FU->executeIfPossible();
+            if(glb_div!=-1)
+                instructionLogs[glb_div]->executeStartCycle = current_cycle;
         }
 
         void issue(){
@@ -428,6 +442,9 @@ class CPU{
                     waitingRS[src2Rob].push_back(alotted);
 
                 instructionQueue.pop();
+
+                //update issue cycle
+                instructionLogs[instrToBeIssued->getGlobal_Seq_Num()]->issueCycle = current_cycle;
                 return;
             }
             else{
@@ -513,47 +530,50 @@ class CPU{
                     waitingLS[data_rob].push_back(alotted);
 
                 instructionQueue.pop();
+
+                //update issue cycle
+                instructionLogs[instrToBeIssued->getGlobal_Seq_Num()]->issueCycle = current_cycle;
                 return;
             } 
         }
 
         int* getRegisters() {
-        return registers;
-    }
+            return registers;
+        }
 
-    int* getRSI() {
-        return rsi;
-    }
+        int* getRSI() {
+            return rsi;
+        }
 
-    ROB* getROB() {
-        return rob;
-    }
+        ROB* getROB() {
+            return rob;
+        }
 
-    LSQ* getLSQ() {
-        return lsq;
-    }
+        LSQ* getLSQ() {
+            return lsq;
+        }
 
-    CDB* getCDB() {
-        return cdb;
-    }
+        CDB* getCDB() {
+            return cdb;
+        }
 
-    FunctionalUnit* getAluFU() {
-        return ALU_FU;
-    }
+        FunctionalUnit* getAluFU() {
+            return ALU_FU;
+        }
 
-    FunctionalUnit* getMulFU() {
-        return MUL_FU;
-    }
+        FunctionalUnit* getMulFU() {
+            return MUL_FU;
+        }
 
-    FunctionalUnit* getDivFU() {
-        return DIV_FU;
-    }
+        FunctionalUnit* getDivFU() {
+            return DIV_FU;
+        }
 
-    unordered_map<int, int>* getMemoryMap() {
-        return &memory_map;
-    }
+        unordered_map<int, int>* getMemoryMap() {
+            return &memory_map;
+        }
 
-    map<int, instructionLog*>* getInstructionLogs() {
-        return &instructionLogs;
-    }
+        map<int, instructionLog*>* getInstructionLogs() {
+            return &instructionLogs;
+        }
 };

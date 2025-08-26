@@ -3,7 +3,7 @@
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | -          | -        | -         | -       
 ADDI R2, R0, 10          | -      | -          | -        | -         | -       
 ADD  R3, R1, R2          | -      | -          | -        | -         | -       
 STORE R1, 0(R2)          | -      | -          | -        | -         | -       
@@ -48,8 +48,8 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | -         | -       
+ADDI R2, R0, 10          | 2      | -          | -        | -         | -       
 ADD  R3, R1, R2          | -      | -          | -        | -         | -       
 STORE R1, 0(R2)          | -      | -          | -        | -         | -       
 LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
@@ -94,9 +94,9 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | -       
+ADDI R2, R0, 10          | 2      | 3          | -        | -         | -       
+ADD  R3, R1, R2          | 3      | -          | -        | -         | -       
 STORE R1, 0(R2)          | -      | -          | -        | -         | -       
 LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
@@ -141,10 +141,10 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | -       
+ADD  R3, R1, R2          | 3      | 4          | -        | -         | -       
+STORE R1, 0(R2)          | 4      | -          | -        | -         | -       
 LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
@@ -188,11 +188,11 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | -       
+STORE R1, 0(R2)          | 4      | 5          | -        | -         | -       
+LOAD  R4, 0(R2)          | 5      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -236,12 +236,12 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
-SUB  R5, R4, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
+STORE R1, 0(R2)          | 4      | 5          | -        | 6         | -       
+LOAD  R4, 0(R2)          | 5      | 6          | -        | -         | -       
+SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -285,12 +285,12 @@ Memory State
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
-SUB  R5, R4, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
+STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
+LOAD  R4, 0(R2)          | 5      | 6          | 7        | -         | -       
+SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -333,12 +333,12 @@ M[11] : 51
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
-SUB  R5, R4, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
+STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
+LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | -       
+SUB  R5, R4, R2          | 6      | 8          | -        | -         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -380,12 +380,12 @@ M[11] : 51
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
-SUB  R5, R4, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
+STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
+LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | 9       
+SUB  R5, R4, R2          | 6      | 8          | -        | 9         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -425,12 +425,12 @@ M[11] : 51
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
-ADDI R1, R0, 50          | -      | -          | -        | -         | -       
-ADDI R2, R0, 10          | -      | -          | -        | -         | -       
-ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
-SUB  R5, R4, R2          | -      | -          | -        | -         | -       
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
+STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
+LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | 9       
+SUB  R5, R4, R2          | 6      | 8          | -        | 9         | 10      
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  

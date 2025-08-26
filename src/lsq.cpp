@@ -65,8 +65,9 @@ class LSQ{
             head=(head+1)%size;
         }
 
-        void executeEffectiveAddress(){
+        int executeEffectiveAddress(){
             int ptr=head;
+            int glb_s_n = -1;
             while(ptr!=tail){
                 auto it=lsq[ptr];
                 if(it->valid && !it->addressCalculated && it->isRegValReady){
@@ -75,20 +76,22 @@ class LSQ{
                     agu->calculateEffectiveAddress();
                     it->effectveAddress = agu->getEffectiveAddress();
                     it->addressCalculated = true;
+                    glb_s_n = it->global_seq_num;
                     break;
                 }
                 ptr=(ptr+1)%size;
             }
+            return glb_s_n;
         }
 
-        void readMemAccess(){
+        int readMemAccess(){
             int ptr=head;
             while(ptr!=tail){
                 auto it=lsq[ptr];
                 if(!it->isLoad && !it->addressCalculated){
-                    return;
+                    return -1;
                 }
-                if(it->isLoad && it->addressCalculated){
+                if(it->isLoad && it->addressCalculated && !it->isDataLoaded){
                     int j=(ptr-1+size)%size;
                     int currentEA = it->effectveAddress;
                     while(j!=(head-1+size)%size && (lsq[j]->isLoad || lsq[j]->effectveAddress != currentEA))
@@ -97,17 +100,18 @@ class LSQ{
                         it->loadedData = memory_map[currentEA];
                         it->isDataLoaded = true;
                         it->canWriteToCDB = true;
-                        return;
+                        return it->global_seq_num;
                     }
                     if(lsq[j]->isDataReady){
                         it->loadedData = lsq[j]->dataToBeStored;
                         it->isDataLoaded = true;
                         it->canWriteToCDB = true;
-                        return;
+                        return it->global_seq_num;
                     }
                 }
                 ptr=(ptr+1)%size;
             }
+            return -1;
         }
 
         bool canBeWrittenToCDB(LSQEntry *temp){

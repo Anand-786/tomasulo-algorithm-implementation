@@ -70,11 +70,11 @@ class FunctionalUnit{
             return reservationStations;
         }
 
-        void executeIfPossible(){
+        int executeIfPossible(){
             if(occupied){
                 advanceCycle();
                 markIfCompleted();
-                return;
+                return -1;
             }
             //assign a new instruction to execute
             ReservationStation *temp = NULL;
@@ -89,7 +89,7 @@ class FunctionalUnit{
                 index++;
             }
             if(!temp){
-                return;
+                return -1;
             }
             
             setOccupied(true);
@@ -119,6 +119,7 @@ class FunctionalUnit{
             //mark RS as empty
             reservationStations[temp_index]->setBusy(false);
             freeRS.insert(temp_index);
+            return global_seq_num;
         }
 
         bool freeRSAvailable(){

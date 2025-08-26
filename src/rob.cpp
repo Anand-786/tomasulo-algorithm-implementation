@@ -94,6 +94,10 @@ class ROB{
             return count;
         }
 
+        int getGlobalSeqNum(){
+            return rob[head]->global_seq_num;
+        }
+
         RobEntry* getROBEntry(int index){
             return rob[index];
         }
