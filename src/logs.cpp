@@ -34,6 +34,27 @@ class Logs{
                 cout<<"Trace file creation failed!\n";
         }
 
+        //print final cycle table
+        void printTable(){
+            cout<<"\nFinal Instruction Status Table : "<<endl<<endl;
+            cout << left << setw(25) << "Instruction" << "| "
+                    << setw(7) << "Issue" << "| "
+                    << setw(11) << "ExecStart" << "| "
+                    << setw(9) << "ReadMem" << "| "
+                    << setw(10) << "WriteCDB" << "| "
+                    << setw(8) << "Commit" << "\n";
+                cout << setfill('-') << setw(80) << "" << setfill(' ') << "\n";
+                for (auto const& [key, val] : *instructionLogs) {
+                    cout << left << setw(25) << val->instruction << "| "
+                        << setw(7) << (val->issueCycle == 0 ? "-" : to_string(val->issueCycle)) << "| "
+                        << setw(11) << (val->executeStartCycle == 0 ? "-" : to_string(val->executeStartCycle)) << "| "
+                        << setw(9) << (val->memAccessCycle == 0 ? "-" : to_string(val->memAccessCycle)) << "| "
+                        << setw(10) << (val->writeCDBCycle == 0 ? "-" : to_string(val->writeCDBCycle)) << "| "
+                        << setw(8) << (val->commitCycle == 0 ? "-" : to_string(val->commitCycle)) << "\n";
+                }
+            cout << endl;
+        }
+
         //helper function for getting string opcode
         string opcodeString(int val){
             switch (val){

@@ -14,7 +14,8 @@ int main(){
         log->addCycleLogs(cpu->getCurrentCycle());
     }
 
-    cout<<"Simulation Completed.\n";
-    cout<<"Cycles Consumed : "<<cpu->getCurrentCycle()<<"\n";
-    cout<<"To see Cycle-by-Cycle Logs check : results/trace.log\n";
+    cout<<"\nSimulation Completed.\n";
+    log->printTable();
+    cout<<"\nCycles Consumed : "<<cpu->getCurrentCycle()<<" clock cycles\n\n";
+    cout<<"To see Cycle-by-Cycle Logs check : results/trace.log\n\n";
 }
