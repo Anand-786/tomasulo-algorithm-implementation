@@ -244,7 +244,7 @@ class CPU{
                 if(temp < arbitration)
                     arbitration = temp;
             }
-            vector<int> lsq_candidate = lsq->candidateForCDBWrite();
+            vector<int> lsq_candidate = lsq->candidateForCDBWrite(current_cycle);
             int possible_lsq_write_num = lsq_candidate[4];
             if(lsq_candidate[0] < arbitration){
                 arbitration = lsq_candidate[0];
@@ -313,10 +313,12 @@ class CPU{
                     if(it->reg_rob_entry == cdb->getROBEntryNum()){
                         it->regVal = cdb->getResult();
                         it->isRegValReady = true;
+                        it->skip_cycle = current_cycle;
                     }
                     else{
                         it->dataToBeStored = cdb->getResult();
                         it->isDataReady = true;
+                        it->skip_cycle = current_cycle;
                     }
                 }
             }
@@ -332,7 +334,7 @@ class CPU{
         }
 
         void execute(){
-            int glb_lsq = lsq->executeEffectiveAddress();
+            int glb_lsq = lsq->executeEffectiveAddress(current_cycle);
             if(glb_lsq!=-1)
                 instructionLogs[glb_lsq]->executeStartCycle = current_cycle;
             int glb_alu = ALU_FU->executeIfPossible(current_cycle);

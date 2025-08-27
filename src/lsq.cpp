@@ -22,6 +22,7 @@ struct LSQEntry{
     bool isDataReady;
     bool canWriteToCDB;
     bool isWrittenToCDB;
+    int skip_cycle;
 };
 
 class LSQ{
@@ -37,8 +38,10 @@ class LSQ{
         LSQ(int sz, unordered_map<int, int> &mm){
             size=sz;
             lsq.resize(size);
-            for(int i=0;i<size;i++)
+            for(int i=0;i<size;i++){
                 lsq[i] = new LSQEntry();
+                lsq[i]->skip_cycle = -1;
+            }
             agu = new AGU();
             memory_map = mm;
             head=tail=count=0;
@@ -65,12 +68,12 @@ class LSQ{
             head=(head+1)%size;
         }
 
-        int executeEffectiveAddress(){
+        int executeEffectiveAddress(int current_cycle){
             int ptr=head;
             int glb_s_n = -1;
             while(ptr!=tail){
                 auto it=lsq[ptr];
-                if(it->valid && !it->addressCalculated && it->isRegValReady){
+                if(it->valid && !it->addressCalculated && it->isRegValReady && (it->skip_cycle != current_cycle)){
                     agu->setImm(it->offset);
                     agu->setRegVal(it->regVal);
                     agu->calculateEffectiveAddress();
@@ -122,12 +125,12 @@ class LSQ{
             return false;
         }
 
-        vector<int> candidateForCDBWrite(){
+        vector<int> candidateForCDBWrite(int current_cycle){
             int global_seq_num=-1;
             int ptr=head;
             while(ptr!=tail){
                 auto it = lsq[ptr];
-                if(!it->isWrittenToCDB && canBeWrittenToCDB(it)){
+                if(!it->isWrittenToCDB && canBeWrittenToCDB(it) && (it->skip_cycle != current_cycle)){
                     if(it->isLoad)
                         return {it->global_seq_num, -1, it->loadedData, it->rob_entry_num, ptr};
                     else{
