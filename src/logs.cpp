@@ -34,6 +34,10 @@ class Logs{
                 cout<<"Trace file creation failed!\n";
         }
 
+        map<int, instructionLog*>* getILogs(){
+            return instructionLogs;
+        }
+
         //print final cycle table
         void printTable(){
             cout<<"\nFinal Instruction Status Table : "<<endl<<endl;
