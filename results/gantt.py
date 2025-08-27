@@ -34,11 +34,11 @@ def create_gantt_chart(filename="instruction_status.txt"):
         return
 
     colors = {
-        'Issue': '#a6cee3', 
-        'ExecStart': '#1f78b4', 
-        'ReadMem': '#b2df8a', 
-        'WriteCDB': '#33a02c', 
-        'Commit': '#fb9a99'
+        'Issue': '#CBEEF3', 
+        'ExecStart': '#3275AC', 
+        'ReadMem': '#F26A8D', 
+        'WriteCDB': '#C91D34', 
+        'Commit': '#424242'
     }
     stage_names = list(colors.keys())
 
