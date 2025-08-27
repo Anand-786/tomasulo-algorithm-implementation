@@ -70,7 +70,7 @@ class FunctionalUnit{
             return reservationStations;
         }
 
-        int executeIfPossible(){
+        int executeIfPossible(int current_cycle){
             if(occupied){
                 advanceCycle();
                 markIfCompleted();
@@ -81,7 +81,7 @@ class FunctionalUnit{
             int temp_index=-1,index=0;
             int min_glb_seq_num=INT_MAX;
             for(auto it: reservationStations){
-                if(it->isBusy() && it->isReadyForExecution() && (it->getGlobalSeqNum()<min_glb_seq_num)){
+                if(it->isBusy() && it->isReadyForExecution() && (it->getGlobalSeqNum()<min_glb_seq_num) && (it->getSkipCycle()!=current_cycle)){
                     min_glb_seq_num = it->getGlobalSeqNum();
                     temp = it;
                     temp_index = index;

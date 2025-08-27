@@ -6,8 +6,8 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 ADDI R1, R0, 50          | 1      | -          | -        | -         | -       
 ADDI R2, R0, 10          | -      | -          | -        | -         | -       
 ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
+STORE R1, 0(R3)          | -      | -          | -        | -         | -       
+LOAD  R4, 0(R1)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -51,8 +51,8 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 ADDI R1, R0, 50          | 1      | 2          | -        | -         | -       
 ADDI R2, R0, 10          | 2      | -          | -        | -         | -       
 ADD  R3, R1, R2          | -      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
+STORE R1, 0(R3)          | -      | -          | -        | -         | -       
+LOAD  R4, 0(R1)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -97,8 +97,8 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | -       
 ADDI R2, R0, 10          | 2      | 3          | -        | -         | -       
 ADD  R3, R1, R2          | 3      | -          | -        | -         | -       
-STORE R1, 0(R2)          | -      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
+STORE R1, 0(R3)          | -      | -          | -        | -         | -       
+LOAD  R4, 0(R1)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -143,14 +143,15 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | -       
-ADD  R3, R1, R2          | 3      | 4          | -        | -         | -       
-STORE R1, 0(R2)          | 4      | -          | -        | -         | -       
-LOAD  R4, 0(R2)          | -      | -          | -        | -         | -       
+ADD  R3, R1, R2          | 3      | -          | -        | -         | -       
+STORE R1, 0(R3)          | 4      | -          | -        | -         | -       
+LOAD  R4, 0(R1)          | -      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
 -----------------------------------------------------------------
+Yes   | ADD     | -       | -       | 51      | 11      | ROB 2 
 
 Multiplier Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -170,7 +171,7 @@ ROB 3   | STORE   | Mem[-]    | -         | No
 Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
 ---------------------------------------------------------------------------------------------------------
-LSQ 0   | STORE   | -     | 51        | ROB 3     | 0        | 11                | NO      | -           
+LSQ 0   | STORE   | -     | 51        | ROB 3     | 0        | -                 | NO      | -           
 
 Register File & Status
  R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
@@ -190,9 +191,9 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | -       
-STORE R1, 0(R2)          | 4      | 5          | -        | -         | -       
-LOAD  R4, 0(R2)          | 5      | -          | -        | -         | -       
+ADD  R3, R1, R2          | 3      | 5          | -        | -         | -       
+STORE R1, 0(R3)          | 4      | -          | -        | -         | -       
+LOAD  R4, 0(R1)          | 5      | -          | -        | -         | -       
 SUB  R5, R4, R2          | -      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -210,15 +211,15 @@ Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest
 Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | Dest      | Value     | Done  
 --------------------------------------------------
-ROB 2   | ADD     | R3        | 62        | Yes   
+ROB 2   | ADD     | R3        | -         | No    
 ROB 3   | STORE   | Mem[-]    | -         | No    
 ROB 4   | LOAD    | R4        | -         | No    
 
 Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
 ---------------------------------------------------------------------------------------------------------
-LSQ 0   | STORE   | 11    | 51        | ROB 3     | 0        | 11                | NO      | -           
-LSQ 1   | LOAD    | -     | -         | ROB 4     | 0        | 11                | NO      | -           
+LSQ 0   | STORE   | -     | 51        | ROB 3     | 0        | -                 | NO      | -           
+LSQ 1   | LOAD    | -     | -         | ROB 4     | 0        | 51                | NO      | -           
 
 Register File & Status
  R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
@@ -238,9 +239,9 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
-STORE R1, 0(R2)          | 4      | 5          | -        | 6         | -       
-LOAD  R4, 0(R2)          | 5      | 6          | -        | -         | -       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | -       
+STORE R1, 0(R3)          | 4      | 6          | -        | -         | -       
+LOAD  R4, 0(R1)          | 5      | -          | -        | -         | -       
 SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -259,21 +260,22 @@ Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest
 Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | Dest      | Value     | Done  
 --------------------------------------------------
-ROB 3   | STORE   | Mem[11]   | 51        | Yes   
+ROB 2   | ADD     | R3        | 62        | Yes   
+ROB 3   | STORE   | Mem[-]    | -         | No    
 ROB 4   | LOAD    | R4        | -         | No    
 ROB 5   | SUB     | R5        | -         | No    
 
 Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
 ---------------------------------------------------------------------------------------------------------
-LSQ 0   | STORE   | 11    | 51        | ROB 3     | 0        | 11                | YES     | DONE        
-LSQ 1   | LOAD    | 11    | -         | ROB 4     | 0        | 11                | NO      | -           
+LSQ 0   | STORE   | 62    | 51        | ROB 3     | 0        | 62                | NO      | -           
+LSQ 1   | LOAD    | -     | -         | ROB 4     | 0        | 51                | NO      | -           
 
 Register File & Status
  R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Ready  | Ready  | Ready  | Ready  | ROB 4  | ROB 5  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  |
- 1      | 51     | 11     | 62     | -      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
+ Ready  | Ready  | Ready  | ROB 2  | ROB 4  | ROB 5  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  |
+ 1      | 51     | 11     | -      | -      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
 
 Memory State
 -
@@ -287,9 +289,58 @@ Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
-STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
-LOAD  R4, 0(R2)          | 5      | 6          | 7        | -         | -       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | -       
+LOAD  R4, 0(R1)          | 5      | 7          | -        | -         | -       
+SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
+
+Integer-ALU Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+Yes   | SUB     | ROB 4   | -       | -       | 11      | ROB 5 
+
+Multiplier Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Divider Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | Dest      | Value     | Done  
+--------------------------------------------------
+ROB 3   | STORE   | Mem[62]   | 51        | Yes   
+ROB 4   | LOAD    | R4        | -         | No    
+ROB 5   | SUB     | R5        | -         | No    
+
+Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
+---------------------------------------------------------------------------------------------------------
+LSQ 0   | STORE   | 62    | 51        | ROB 3     | 0        | 62                | YES     | DONE        
+LSQ 1   | LOAD    | 51    | -         | ROB 4     | 0        | 51                | NO      | -           
+
+Register File & Status
+ R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Ready  | Ready  | Ready  | Ready  | ROB 4  | ROB 5  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  |
+ 1      | 51     | 11     | 62     | -      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
+
+Memory State
+-
+
+
+
+----------------------------------------------------------------------------------------------- Cycle 8 ------------------------------------------------------------------------------------------------
+
+Instruction Status
+Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
+--------------------------------------------------------------------------------
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | 8       
+LOAD  R4, 0(R1)          | 5      | 7          | 8        | -         | -       
 SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
@@ -314,7 +365,7 @@ ROB 5   | SUB     | R5        | -         | No
 Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
 ---------------------------------------------------------------------------------------------------------
-LSQ 1   | LOAD    | 11    | 0         | ROB 4     | 0        | 11                | YES     | -           
+LSQ 1   | LOAD    | 51    | 0         | ROB 4     | 0        | 51                | YES     | -           
 
 Register File & Status
  R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
@@ -323,26 +374,27 @@ Register File & Status
  1      | 51     | 11     | 62     | -      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
 
 Memory State
-M[11] : 51
+M[62] : 51
 
 
 
 
------------------------------------------------------------------------------------------------ Cycle 8 ------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------- Cycle 9 ------------------------------------------------------------------------------------------------
 
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
-STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
-LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | -       
-SUB  R5, R4, R2          | 6      | 8          | -        | -         | -       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | 8       
+LOAD  R4, 0(R1)          | 5      | 7          | 8        | 9         | -       
+SUB  R5, R4, R2          | 6      | -          | -        | -         | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
 -----------------------------------------------------------------
+Yes   | SUB     | -       | -       | 0       | 11      | ROB 5 
 
 Multiplier Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -361,7 +413,7 @@ ROB 5   | SUB     | R5        | -         | No
 Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
 Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
 ---------------------------------------------------------------------------------------------------------
-LSQ 1   | LOAD    | 11    | 0         | ROB 4     | 0        | 11                | YES     | DONE        
+LSQ 1   | LOAD    | 51    | 0         | ROB 4     | 0        | 51                | YES     | DONE        
 
 Register File & Status
  R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
@@ -370,22 +422,67 @@ Register File & Status
  1      | 51     | 11     | 62     | -      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
 
 Memory State
-M[11] : 51
+M[62] : 51
 
 
 
 
------------------------------------------------------------------------------------------------ Cycle 9 ------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------- Cycle 10 -----------------------------------------------------------------------------------------------
 
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
-STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
-LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | 9       
-SUB  R5, R4, R2          | 6      | 8          | -        | 9         | -       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | 8       
+LOAD  R4, 0(R1)          | 5      | 7          | 8        | 9         | 10      
+SUB  R5, R4, R2          | 6      | 10         | -        | -         | -       
+
+Integer-ALU Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Multiplier Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Divider Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | Dest      | Value     | Done  
+--------------------------------------------------
+ROB 5   | SUB     | R5        | -         | No    
+
+Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
+---------------------------------------------------------------------------------------------------------
+
+Register File & Status
+ R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     | R9     | R10    | R11    | R12    | R13    | R14    | R15    | R16    | R17    | R18    | R19    | R20    | R21    | R22    | R23    | R24    | R25    | R26    | R27    | R28    | R29    | R30    | R31    |
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Ready  | Ready  | Ready  | Ready  | Ready  | ROB 5  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  |
+ 1      | 51     | 11     | 62     | 0      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
+
+Memory State
+M[62] : 51
+
+
+
+
+----------------------------------------------------------------------------------------------- Cycle 11 -----------------------------------------------------------------------------------------------
+
+Instruction Status
+Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
+--------------------------------------------------------------------------------
+ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
+ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | 8       
+LOAD  R4, 0(R1)          | 5      | 7          | 8        | 9         | 10      
+SUB  R5, R4, R2          | 6      | 10         | -        | 11        | -       
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -415,22 +512,22 @@ Register File & Status
  1      | 51     | 11     | 62     | 0      | -      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
 
 Memory State
-M[11] : 51
+M[62] : 51
 
 
 
 
------------------------------------------------------------------------------------------------ Cycle 10 -----------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------- Cycle 12 -----------------------------------------------------------------------------------------------
 
 Instruction Status
 Instruction              | Issue  | ExecStart  | ReadMem  | WriteCDB  | Commit  
 --------------------------------------------------------------------------------
 ADDI R1, R0, 50          | 1      | 2          | -        | 3         | 4       
 ADDI R2, R0, 10          | 2      | 3          | -        | 4         | 5       
-ADD  R3, R1, R2          | 3      | 4          | -        | 5         | 6       
-STORE R1, 0(R2)          | 4      | 5          | -        | 6         | 7       
-LOAD  R4, 0(R2)          | 5      | 6          | 7        | 8         | 9       
-SUB  R5, R4, R2          | 6      | 8          | -        | 9         | 10      
+ADD  R3, R1, R2          | 3      | 5          | -        | 6         | 7       
+STORE R1, 0(R3)          | 4      | 6          | -        | 7         | 8       
+LOAD  R4, 0(R1)          | 5      | 7          | 8        | 9         | 10      
+SUB  R5, R4, R2          | 6      | 10         | -        | 11        | 12      
 
 Integer-ALU Reservation Stations
 Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
@@ -459,7 +556,7 @@ Register File & Status
  1      | 51     | 11     | 62     | 0      | -11    | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      | 1      |
 
 Memory State
-M[11] : 51
+M[62] : 51
 
 
 

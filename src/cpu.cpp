@@ -297,10 +297,12 @@ class CPU{
                     if(it->getQj() == cdb->getROBEntryNum()){
                         it->setVj(cdb->getResult());
                         it->setQj(-1);
+                        it->setSkipCycle(current_cycle);
                     }
                     if(it->getQk() == cdb->getROBEntryNum()){
                         it->setVk(cdb->getResult());
                         it->setQk(-1);
+                        it->setSkipCycle(current_cycle);
                     }
                 }
             }
@@ -333,13 +335,13 @@ class CPU{
             int glb_lsq = lsq->executeEffectiveAddress();
             if(glb_lsq!=-1)
                 instructionLogs[glb_lsq]->executeStartCycle = current_cycle;
-            int glb_alu = ALU_FU->executeIfPossible();
+            int glb_alu = ALU_FU->executeIfPossible(current_cycle);
             if(glb_alu!=-1)
                 instructionLogs[glb_alu]->executeStartCycle = current_cycle;
-            int glb_mul = MUL_FU->executeIfPossible();
+            int glb_mul = MUL_FU->executeIfPossible(current_cycle);
             if(glb_mul!=-1)
                 instructionLogs[glb_mul]->executeStartCycle = current_cycle;
-            int glb_div = DIV_FU->executeIfPossible();
+            int glb_div = DIV_FU->executeIfPossible(current_cycle);
             if(glb_div!=-1)
                 instructionLogs[glb_div]->executeStartCycle = current_cycle;
         }

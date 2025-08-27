@@ -9,6 +9,7 @@ class ReservationStation{
         int Qj,Qk;
         int robEntryNum;
         int global_seq_num;
+        int skip_cycle;
 
     public:
         ReservationStation(){
@@ -16,6 +17,7 @@ class ReservationStation{
             opcode=-1;
             robEntryNum=-1;
             global_seq_num=-1;
+            skip_cycle=-1;
         }
 
         bool isBusy(){
@@ -23,6 +25,12 @@ class ReservationStation{
         }
         void setBusy(bool val){
             busy = val;
+        }
+        int getSkipCycle(){
+            return skip_cycle;
+        }
+        void setSkipCycle(int val){
+            skip_cycle = val;
         }
         int getOpcode(){
             return opcode;
