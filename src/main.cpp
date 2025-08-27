@@ -1,5 +1,6 @@
 #include "logs.cpp"
 #include <iostream>
+#include <cstdlib>
 using namespace std;
 
 int main(){
@@ -18,4 +19,9 @@ int main(){
     log->printTable();
     cout<<"\nCycles Consumed : "<<cpu->getCurrentCycle()<<" clock cycles\n\n";
     cout<<"To see Cycle-by-Cycle Logs check : results/trace.log\n\n";
+    
+    //calling gantt chart python script
+    system("python3 ../results/gantt.py");
+
+    return 0;
 }
