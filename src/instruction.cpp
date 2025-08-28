@@ -10,9 +10,6 @@ const int DIV=4;
 const int LOAD=5;
 const int STORE=6;
 
-//Latency array matching with the opcode index
-const int latency[]={1, 1, 1, 5, 10, 2, 2};
-
 class Instruction{
     private:
         int type;

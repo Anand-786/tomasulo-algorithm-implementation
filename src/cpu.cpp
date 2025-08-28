@@ -4,6 +4,7 @@
 #include "functionalUnit.cpp"
 #include "lsq.cpp"
 #include "cdb.cpp"
+#include "../include/config.h"
 
 using namespace std;
 
@@ -55,15 +56,15 @@ class CPU{
         }
 
     public:
-        CPU(){
-            rob = new ROB(20);
-            lsq = new LSQ(10, memory_map);
+        CPU(SimConfig *config){
+            rob = new ROB(config->rob_size);
+            lsq = new LSQ(config->lsq_size, memory_map);
             cdb = new CDB();
             current_cycle=0;
-            ALU_FU = new FunctionalUnit(4, latency[ADD]);
-            MUL_FU = new FunctionalUnit(4, latency[MUL]);
-            DIV_FU = new FunctionalUnit(4, latency[DIV]);
-            ADDR_FU = new FunctionalUnit(0, latency[ADDI]);
+            ALU_FU = new FunctionalUnit(config->num_alu_rs, config->alu_latency);
+            MUL_FU = new FunctionalUnit(config->num_mul_rs, config->mul_latency);
+            DIV_FU = new FunctionalUnit(config->num_div_rs, config->div_latency);
+            ADDR_FU = new FunctionalUnit(0, 1);
             for(int i=0;i<32;i++){
                 rsi[i]=-1;
                 registers[i]=1;

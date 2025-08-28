@@ -1,6 +1,7 @@
 #include "logs.cpp"
 #include <iostream>
 #include <cstdlib>
+#include "INIReader.h"
 using namespace std;
 
 void createInstructionStatusFile(map<int, instructionLog*> *instructionLogs){
@@ -29,8 +30,31 @@ void createInstructionStatusFile(map<int, instructionLog*> *instructionLogs){
     }
 }
 
+//Loads Config.ini to our SimConfig Struct
+SimConfig* loadConfig(string &config_path){
+    INIReader reader(config_path);
+    if(reader.ParseError() < 0){
+        cout<<"Could not load Configuration!\n\nExiting...";
+        exit(1);
+    }
+
+    SimConfig *config = new SimConfig();
+    config->rob_size = reader.GetInteger("Core", "rob_size", 16);
+    config->lsq_size = reader.GetInteger("Core", "lsq_size", 8);
+    config->num_alu_rs = reader.GetInteger("ReservationStations", "num_alu_rs", 8);
+    config->num_mul_rs = reader.GetInteger("ReservationStations", "num_mul_rs", 4);
+    config->num_div_rs = reader.GetInteger("ReservationStations", "num_div_rs", 2);
+    config->alu_latency = reader.GetInteger("Latencies", "alu_latency", 1);
+    config->mul_latency = reader.GetInteger("Latencies", "mul_latency", 5);
+    config->div_latency = reader.GetInteger("Latencies", "div_latency", 10);
+
+    return config;
+}
+
 int main(){
-    CPU *cpu = new CPU();
+    string config_path = "../config/config.ini";
+    SimConfig *config = loadConfig(config_path);
+    CPU *cpu = new CPU(config);
     string filename="program.txt";
     cpu->loadProgram(filename);
     Logs *log = new Logs(cpu->getAluFU(), cpu->getMulFU(), cpu->getDivFU(), cpu->getLSQ(), cpu->getROB(), cpu->getRegisters(),
