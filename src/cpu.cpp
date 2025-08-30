@@ -163,6 +163,7 @@ class CPU{
             }
             file.close();
             totalInstructions = instructionQueue.size();
+            stats->total_insts = totalInstructions;
         }
 
         void printProgram(){
@@ -202,6 +203,8 @@ class CPU{
             memAccess();
             execute();
             issue();
+
+            stats->total_cycles = current_cycle;
         }
 
         void commit(){
@@ -454,6 +457,21 @@ class CPU{
 
                 //update issue cycle
                 instructionLogs[instrToBeIssued->getGlobal_Seq_Num()]->issueCycle = current_cycle;
+
+                //update stats
+                switch (instrToBeIssued->getType()){
+                    case ADD:
+                    case SUB:
+                    case ADDI:
+                        stats->op_class_int_alu++;
+                        break;
+                    case MUL:
+                        stats->op_class_int_mul++;
+                        break;
+                    case DIV:
+                        stats->op_class_int_div++;
+                        break;
+                }
                 return;
             }
             else{
@@ -542,6 +560,12 @@ class CPU{
 
                 //update issue cycle
                 instructionLogs[instrToBeIssued->getGlobal_Seq_Num()]->issueCycle = current_cycle;
+
+                //Update Stats
+                if(instrToBeIssued->getType() == LOAD)
+                    stats->op_class_mem_read++;
+                else    
+                    stats->op_class_mem_write++;
                 return;
             } 
         }

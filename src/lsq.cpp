@@ -76,6 +76,7 @@ class LSQ{
         void clearHeadOnCommit(){
             lsq[head]->valid=false;
             head=(head+1)%size;
+            count--;
         }
 
         int executeEffectiveAddress(int current_cycle){
@@ -198,6 +199,8 @@ class LSQ{
             LSQEntry *alotted = lsq[tail];
             tail = (tail+1)%size;
             count++;
+            if(count>stats->lsq_peak_occupancy)
+                stats->lsq_peak_occupancy = count;
             return alotted;
         }
 

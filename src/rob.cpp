@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include "stats.cpp"
 using namespace std;
 
 struct RobEntry{
@@ -117,6 +118,7 @@ class ROB{
             int slot = tail;
             tail=(tail+1)%size;
             count++;
+            stats->rob_peak_occupancy = (count > stats->rob_peak_occupancy)? count : stats->rob_peak_occupancy;
             return slot;
         }
 };
