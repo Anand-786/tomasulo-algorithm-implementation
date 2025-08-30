@@ -35,6 +35,7 @@ class CPU{
         FunctionalUnit *MUL_FU;
         FunctionalUnit *DIV_FU;
         FunctionalUnit *ADDR_FU;
+        Cache *cache;
 
 
         vector<string> parseInstruction(string &line){
@@ -56,9 +57,10 @@ class CPU{
         }
 
     public:
-        CPU(SimConfig *config){
+        CPU(SimConfig *config, Cache *l1cache){
+            cache = l1cache;
             rob = new ROB(config->rob_size);
-            lsq = new LSQ(config->lsq_size, memory_map);
+            lsq = new LSQ(config->lsq_size, memory_map, cache);
             cdb = new CDB();
             current_cycle=0;
             ALU_FU = new FunctionalUnit(config->num_alu_rs, config->alu_latency);
@@ -213,6 +215,8 @@ class CPU{
             }
             else{
                 memory_map[rob->getDest()] = rob->getResult();
+                //Set Dirty Bit and LRU counter in L1 cache
+                cache->l1CacheSearchAndUpdate(current_cycle, rob->getDest(), true);
             }
             //update commit cycle
             instructionLogs[rob->getGlobalSeqNum()]->commitCycle = current_cycle;
@@ -329,7 +333,7 @@ class CPU{
         }
 
         void memAccess(){
-            int glb = lsq->readMemAccess();
+            int glb = lsq->readMemAccess(current_cycle);
             if(glb!=-1)
                 instructionLogs[glb]->memAccessCycle = current_cycle;
         }

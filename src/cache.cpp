@@ -46,9 +46,28 @@ class Cache{
                 sets[i] = new CacheSet(associativity);
         }
 
+        int getBlockOffsetBits(){
+            return (int)ceil(log2(block_size));
+        }
+
+        int getSetIndexBits(){
+            return (int)ceil(log2(num_sets));
+        }
+
+        int getAssociativityBits(){
+            return (int)ceil(log2(associativity));
+        }
+
+        int getL1Size(){
+            //Total Size = Num Sets * Associativity * Block Size;
+            //Total Size (int KB) = 2^x KB
+            int total_bits = getSetIndexBits() + getAssociativityBits() + getBlockOffsetBits();
+            return total_bits - 10;
+        }
+
         pair<int, int> getTagAndSetIndex(int address){
-            int block_offset_bits = (int)ceil(log2(block_size));
-            int set_index_bits = (int)ceil(log2(num_sets));
+            int block_offset_bits = getBlockOffsetBits();
+            int set_index_bits = getSetIndexBits();
 
             int address_without_BO = address >> block_offset_bits;
 
@@ -86,40 +105,36 @@ class Cache{
                         cache_line->tag = tag;
                         cache_line->dirty = setDirty;
                         search_set->valid_lines += 1;
-                        return miss_penalty_no_replacement;
+                        return miss_penalty_no_replacement - 1;
                     }
                 }
             }
-            else{
-                //Case 3 : Miss with No Space (Conflict Miss)
-                //Replacement Policy : LRU (Least Recently USed)
-                CacheLine *evictLine = NULL;
-                int least_recently_used_cycle = current_cycle;
-                for(auto cache_line : search_set->set){
-                    if(cache_line->valid){
-                        if(cache_line->lru_counter < least_recently_used_cycle){
-                            least_recently_used_cycle = cache_line->lru_counter;
-                            evictLine = cache_line;
-                        }
+            //Case 3 : Miss with No Space (Conflict Miss)
+            //Replacement Policy : LRU (Least Recently USed)
+            CacheLine *evictLine = NULL;
+            int least_recently_used_cycle = current_cycle;
+            for(auto cache_line : search_set->set){
+                if(cache_line->valid){
+                    if(cache_line->lru_counter < least_recently_used_cycle){
+                        least_recently_used_cycle = cache_line->lru_counter;
+                        evictLine = cache_line;
                     }
                 }
-
-                bool isEvictLineDirty = evictLine->dirty;
-
-                //Overwrite here, but return Penalty accoridng to Dirty Bit
-                evictLine->valid = true;
-                evictLine->dirty = setDirty;
-                evictLine->lru_counter = current_cycle;
-                evictLine->tag = tag;
-
-                if(isEvictLineDirty){
-                    //Case 3A : Replacement of Dirty Block
-                    return miss_penalty_with_replacement;
-                }
-                else{
-                    //Case 3B : Overwrite Clean Block
-                    return miss_penalty_no_replacement;
-                }
             }
+
+            bool isEvictLineDirty = evictLine->dirty;
+
+            //Overwrite here, but return Penalty accoridng to Dirty Bit
+            evictLine->valid = true;
+            evictLine->dirty = setDirty;
+            evictLine->lru_counter = current_cycle;
+            evictLine->tag = tag;
+
+            if(isEvictLineDirty){
+                //Case 3A : Replacement of Dirty Block
+                return miss_penalty_with_replacement - 1;
+            }
+            //Case 3B : Overwrite Clean Block
+            return miss_penalty_no_replacement - 1;
         }
 };

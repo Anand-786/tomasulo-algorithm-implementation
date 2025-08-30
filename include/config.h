@@ -15,4 +15,12 @@ struct SimConfig{
     int alu_latency;
     int mul_latency;
     int div_latency;
+
+    //Cache
+    int num_sets;
+    int associativity;
+    int block_size;
+    int address_bits;
+    int miss_penalty_no_replacement;
+    int miss_penalty_with_replacement;
 };

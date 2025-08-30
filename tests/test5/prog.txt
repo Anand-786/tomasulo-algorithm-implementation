@@ -1,0 +1,2 @@
+LOAD R3, 0(R1)
+LOAD R4, 0(R2)

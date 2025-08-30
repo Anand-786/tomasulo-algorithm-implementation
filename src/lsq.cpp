@@ -1,7 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <climits>
 #include "agu.cpp"
+#include "cache.cpp"
 using namespace std;
 
 struct LSQEntry{
@@ -33,9 +35,14 @@ class LSQ{
         int count;
         AGU *agu;
         int size;
+        bool isLoadPending;
+        LSQEntry *pendingLoadEntry;
+        int dataReadyCycle;
         unordered_map<int, int> memory_map;
+        Cache *cache;
     public:
-        LSQ(int sz, unordered_map<int, int> &mm){
+        LSQ(int sz, unordered_map<int, int> &mm, Cache *l1cache){
+            cache = l1cache;
             size=sz;
             lsq.resize(size);
             for(int i=0;i<size;i++){
@@ -45,6 +52,9 @@ class LSQ{
             agu = new AGU();
             memory_map = mm;
             head=tail=count=0;
+            isLoadPending = false;
+            pendingLoadEntry = NULL;
+            dataReadyCycle = 0;
         }
 
         int getLSQIndex(){
@@ -87,7 +97,17 @@ class LSQ{
             return glb_s_n;
         }
 
-        int readMemAccess(){
+        int readMemAccess(int current_cycle){
+            if(isLoadPending){
+                if(current_cycle == dataReadyCycle){
+                    pendingLoadEntry->isDataLoaded = true;
+                    pendingLoadEntry->canWriteToCDB = true;
+                    isLoadPending = false;
+                    dataReadyCycle = 0;
+                    return pendingLoadEntry->global_seq_num;
+                }
+                return -1;
+            }
             int ptr=head;
             while(ptr!=tail){
                 auto it=lsq[ptr];
@@ -100,12 +120,23 @@ class LSQ{
                     while(j!=(head-1+size)%size && (lsq[j]->isLoad || lsq[j]->effectveAddress != currentEA))
                         j=(j-1+size)%size;
                     if(j==(head-1+size)%size){
+                        //Can Load from Memory
                         it->loadedData = memory_map[currentEA];
-                        it->isDataLoaded = true;
-                        it->canWriteToCDB = true;
-                        return it->global_seq_num;
+                        int penalty = cache->l1CacheSearchAndUpdate(current_cycle, currentEA, false);
+                        if(penalty == 0){
+                            //HIT
+                            it->isDataLoaded = true;
+                            it->canWriteToCDB = true;
+                            return it->global_seq_num;
+                        }
+                        //MISS
+                        isLoadPending = true;
+                        dataReadyCycle = current_cycle + penalty;
+                        pendingLoadEntry = it;
+                        return -1;
                     }
                     if(lsq[j]->isDataReady){
+                        //Store to Load Forwarding
                         it->loadedData = lsq[j]->dataToBeStored;
                         it->isDataLoaded = true;
                         it->canWriteToCDB = true;

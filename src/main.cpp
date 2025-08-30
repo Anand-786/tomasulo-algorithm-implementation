@@ -47,6 +47,12 @@ SimConfig* loadConfig(string &config_path){
     config->alu_latency = reader.GetInteger("Latencies", "alu_latency", 1);
     config->mul_latency = reader.GetInteger("Latencies", "mul_latency", 5);
     config->div_latency = reader.GetInteger("Latencies", "div_latency", 10);
+    config->num_sets = reader.GetInteger("Cache", "num_sets", 64);
+    config->associativity = reader.GetInteger("Cache", "associativity", 8);
+    config->block_size = reader.GetInteger("Cache", "block_size", 64);
+    config->address_bits = reader.GetInteger("Cache", "address_bits", 32);
+    config->miss_penalty_no_replacement = reader.GetInteger("Cache", "miss_penalty_no_replacement", 12);
+    config->miss_penalty_with_replacement = reader.GetInteger("Cache", "miss_penalty_with_replacement", 20);
 
     return config;
 }
@@ -54,7 +60,10 @@ SimConfig* loadConfig(string &config_path){
 int main(){
     string config_path = "../config/config.ini";
     SimConfig *config = loadConfig(config_path);
-    CPU *cpu = new CPU(config);
+    Cache *cache = new Cache(config->num_sets, config->associativity, config->block_size, 
+                            config->address_bits, config->miss_penalty_no_replacement, config->miss_penalty_with_replacement);
+    CPU *cpu = new CPU(config, cache);
+    cout<<"L1 Cache Size : "<<pow(2,cache->getL1Size())<<" KB\n\n"; 
     string filename="program.txt";
     cpu->loadProgram(filename);
     Logs *log = new Logs(cpu->getAluFU(), cpu->getMulFU(), cpu->getDivFU(), cpu->getLSQ(), cpu->getROB(), cpu->getRegisters(),
