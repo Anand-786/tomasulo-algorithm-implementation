@@ -4,6 +4,32 @@
 #include "INIReader.h"
 using namespace std;
 
+void printConfig(string& filename, SimConfig *config, Cache *cache) {
+    const int keyWidth = 22, valWidth = 27;
+    cout << " [ CONFIGURATION ]" << endl;
+    cout << " +----------------------------------------------------------+" << endl;
+    
+    cout << " | > L1 Cache Properties :" << setw(valWidth+7)<<" "<<"|"<< endl;
+    cout << left;
+    cout << " |     - " << setw(keyWidth) << "Size" << ": " << setw(valWidth) << to_string((int)pow(2, cache->getL1Size()))+" KB" << "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "#Sets" << ": " << setw(valWidth) << to_string(config->num_sets) << "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Associativity" << ": " << setw(valWidth) << to_string(config->associativity)+"-way" << "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Block Size" << ": " << setw(valWidth) << to_string(config->block_size)+" B" << "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Physical Address" << ": " << setw(valWidth) << to_string(config->address_bits)+" bits" << "|" <<  endl;
+    cout << " |     - " << setw(keyWidth) << "Miss Penalty (Clean)" << ": " << setw(valWidth) << to_string(config->miss_penalty_no_replacement)+" cycles" <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Miss Penalty (Dirty)" << ": " << setw(valWidth) << to_string(config->miss_penalty_with_replacement)+" cycles" << "|" <<  endl;
+    cout << " |                                                          |"<<endl;
+    cout << " | > Simulator Properties :" <<setw(valWidth+6)<<" "<<"|"<< endl;
+    cout << " |     - " << setw(keyWidth) << "Program File" << ": " << setw(valWidth) << filename <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "ROB entries" << ": " << setw(valWidth) << to_string(config->rob_size) << "|" <<  endl;
+    cout << " |     - " << setw(keyWidth) << "LSQ entries" << ": " << setw(valWidth) << to_string(config->lsq_size) <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Reservation Stations" << ": " << setw(valWidth) << to_string(config->num_alu_rs)+" (ALU), "+to_string(config->num_mul_rs)+" (MUL), "+to_string(config->num_div_rs)+" (DIV)" <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Latencies (cycles)" << ": " << setw(valWidth) << to_string(config->alu_latency)+" (ALU), "+to_string(config->mul_latency)+" (MUL), "+to_string(config->div_latency)+" (DIV)" <<  "|" << endl;
+
+    cout << " +----------------------------------------------------------+" << endl;
+    cout << endl;
+}
+
 void createInstructionStatusFile(map<int, instructionLog*> *instructionLogs){
     ofstream istatus;
     istatus.open("instruction_status.txt");
@@ -53,28 +79,47 @@ SimConfig* loadConfig(string &config_path){
     config->address_bits = reader.GetInteger("Cache", "address_bits", 32);
     config->miss_penalty_no_replacement = reader.GetInteger("Cache", "miss_penalty_no_replacement", 12);
     config->miss_penalty_with_replacement = reader.GetInteger("Cache", "miss_penalty_with_replacement", 20);
-
+    config->filepath = reader.GetString("Simulation", "program_file_path", "program.asm");
     return config;
 }
 
 int main(){
+    string ascii_art_banner = R"(
+    $$$$$$$$\  $$$$$$\  $$\      $$\  $$$$$$\   $$$$$$\  $$\   $$\ $$\       $$$$$$\         $$$$$$\  $$$$$$\ $$\      $$\ $$\   $$\ $$\        $$$$$$\ $$$$$$$$\  $$$$$$\  $$$$$$$\  
+    \__$$  __|$$  __$$\ $$$\    $$$ |$$  __$$\ $$  __$$\ $$ |  $$ |$$ |     $$  __$$\       $$  __$$\ \_$$  _|$$$\    $$$ |$$ |  $$ |$$ |      $$  __$$\\__$$  __|$$  __$$\ $$  __$$\ 
+       $$ |   $$ /  $$ |$$$$\  $$$$ |$$ /  $$ |$$ /  \__|$$ |  $$ |$$ |     $$ /  $$ |      $$ /  \__|  $$ |  $$$$\  $$$$ |$$ |  $$ |$$ |      $$ /  $$ |  $$ |   $$ /  $$ |$$ |  $$ |
+       $$ |   $$ |  $$ |$$\$$\$$ $$ |$$$$$$$$ |\$$$$$$\  $$ |  $$ |$$ |     $$ |  $$ |      \$$$$$$\    $$ |  $$\$$\$$ $$ |$$ |  $$ |$$ |      $$$$$$$$ |  $$ |   $$ |  $$ |$$$$$$$  |
+       $$ |   $$ |  $$ |$$ \$$$  $$ |$$  __$$ | \____$$\ $$ |  $$ |$$ |     $$ |  $$ |       \____$$\   $$ |  $$ \$$$  $$ |$$ |  $$ |$$ |      $$  __$$ |  $$ |   $$ |  $$ |$$  __$$< 
+       $$ |   $$ |  $$ |$$ |\$  /$$ |$$ |  $$ |$$\   $$ |$$ |  $$ |$$ |     $$ |  $$ |      $$\   $$ |  $$ |  $$ |\$  /$$ |$$ |  $$ |$$ |      $$ |  $$ |  $$ |   $$ |  $$ |$$ |  $$ |
+       $$ |    $$$$$$  |$$ | \_/ $$ |$$ |  $$ |\$$$$$$  |\$$$$$$  |$$$$$$$$\ $$$$$$  |      \$$$$$$  |$$$$$$\ $$ | \_/ $$ |\$$$$$$  |$$$$$$$$\ $$ |  $$ |  $$ |    $$$$$$  |$$ |  $$ |
+       \__|    \______/ \__|     \__|\__|  \__| \______/  \______/ \________|\______/        \______/ \______|\__|     \__| \______/ \________|\__|  \__|  \__|    \______/ \__|  \__|
+                                                                                                                                                                                  
+                                                                                                                                                                                  
+                                                                                                                                                                                  
+    )";
+
+    cout<<ascii_art_banner<<endl;
     string config_path = "../config/config.ini";
     SimConfig *config = loadConfig(config_path);
     Cache *cache = new Cache(config->num_sets, config->associativity, config->block_size, 
                             config->address_bits, config->miss_penalty_no_replacement, config->miss_penalty_with_replacement);
     CPU *cpu = new CPU(config, cache);
-    cout<<"L1 Cache Size : "<<pow(2,cache->getL1Size())<<" KB\n\n"; 
-    string filename="program.txt";
+    string filename = config->filepath;
     cpu->loadProgram(filename);
     Logs *log = new Logs(cpu->getAluFU(), cpu->getMulFU(), cpu->getDivFU(), cpu->getLSQ(), cpu->getROB(), cpu->getRegisters(),
                         cpu->getRSI(), cpu->getMemoryMap(), cpu->getInstructionLogs());
+
+    printConfig(filename, config, cache);
+    
+    cout<<" [ INFO ] Executing Program..."<<endl;
 
     while(cpu->continueSimulation()){
         cpu->nextCycle();
         log->addCycleLogs(cpu->getCurrentCycle());
     }
 
-    cout<<"\nSimulation Completed.\n";
+    cout<<" [ DONE ] Simulation Completed Successfully."<<endl;
+
     log->printTable();
 
     cout<<"\nCycles Consumed : "<<cpu->getCurrentCycle()<<" clock cycles\n\n";

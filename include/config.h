@@ -23,4 +23,7 @@ struct SimConfig{
     int address_bits;
     int miss_penalty_no_replacement;
     int miss_penalty_with_replacement;
+
+    //Simulation
+    string filepath;
 };
