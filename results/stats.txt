@@ -1,0 +1,45 @@
+# --- Core Performance ---
+sim.total_cycles                   = 23
+sim.total_insts                    = 6
+sim.ipc                            = 0.2609
+sim.wallclock_time_secs            = 0.0020
+
+# --- Instruction Level ---
+commit.op_class.IntAlu             = 4
+commit.op_class.IntMul             = 0
+commit.op_class.IntDiv             = 0
+commit.op_class.MemRead            = 1
+commit.op_class.MemWrite           = 1
+commit.inst_latency.avg            = 8.0000
+commit.inst_latency.max            = 17
+
+# --- Pipeline Analysis ---
+rob.avg_occupancy                  = 2.0870
+rob.peak_occupancy                 = 4
+lsq.avg_occupancy                  = 0.9130
+lsq.peak_occupancy                 = 2
+rs.avg_occupancy                   = 0.0000
+fu.alu_utilization                 = 0.1739
+fu.mul_utilization                 = 0.0000
+fu.div_utilization                 = 0.0000
+
+# --- Dependency and Hazards ---
+rs.raw_hazard_stall_cycles         = 14
+lsq.store_to_load_forwards         = 0
+cdb.total_broadcasts               = 6
+
+# --- L1 Data Cache ---
+l1d.overall_accesses               = 2
+l1d.overall_hits                   = 1
+l1d.overall_misses                 = 1
+l1d.overall_hit_rate               = 0.5000
+l1d.overall_miss_rate              = 0.5000
+l1d.read_accesses                  = 1
+l1d.read_hits                      = 0
+l1d.read_misses                    = 1
+l1d.write_accesses                 = 1
+l1d.write_hits                     = 1
+l1d.write_misses                   = 0
+l1d.avg_miss_penalty               = 11.0000
+l1d.amat                           = 6.5000
+

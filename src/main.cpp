@@ -27,6 +27,57 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |     - " << setw(keyWidth) << "Latencies (cycles)" << ": " << setw(valWidth) << to_string(config->alu_latency)+" (ALU), "+to_string(config->mul_latency)+" (MUL), "+to_string(config->div_latency)+" (DIV)" <<  "|" << endl;
 
     cout << " +----------------------------------------------------------+" << endl;
+    cout << endl<<endl;
+}
+
+void printStatsSummary(){
+    const int keyWidth = 32;
+    const int valWidth = 20;
+    stringstream ss;
+    ss << fixed << setprecision(2);
+
+    cout << " [ SIMULATION SUMMARY ]" << endl;
+    cout << " +----------------------------------------------------------+" << endl;
+    cout << left;
+    cout << " |  - " << setw(keyWidth) << "Total Execution Cycles" << ": " << setw(valWidth) << to_string(stats->total_cycles) << "|" << endl;
+    cout << " |  - " << setw(keyWidth) << "Total Instructions Committed" << ": " << setw(valWidth) << to_string(stats->total_insts) << "|" << endl;
+    ss << stats->ipc;
+    cout << " |  - " << setw(keyWidth) << "IPC (Instructions/Cycle)" << ": " << setw(valWidth) << ss.str() << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    ss << (stats->wallclock_time_secs * 1000);
+    cout << " |  - " << setw(keyWidth) << "Wall-Clock Time" << ": " << setw(valWidth) << (ss.str() + " ms") << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    ss << stats->l1d_amat;
+    cout << " |  - " << setw(keyWidth) << "Avg. Memory Access Time[AMAT]" << ": " << setw(valWidth) << (ss.str() + " cycles") << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    ss << (stats->l1d_overall_miss_rate * 100.0);
+    cout << " |  - " << setw(keyWidth) << "L1 Cache Miss Rate" << ": " << setw(valWidth) << (ss.str() + " %") << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    ss << stats->l1d_avg_miss_penalty;
+    cout << " |  - " << setw(keyWidth) << "Avg. L1 Miss Penalty" << ": " << setw(valWidth) << (ss.str() + " cycles") << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    ss << stats->inst_latency_avg;
+    cout << " |  - " << setw(keyWidth) << "Avg. Instruction Latency" << ": " << setw(valWidth) << (ss.str() + " cycles") << "|" << endl;
+    ss.str(""); 
+    ss.clear();
+    cout << " +----------------------------------------------------------+" << endl;
+    cout << endl<<endl;
+}
+
+void printFileLocation(){
+    cout << " [ SIMULATION OUTPUT FILES ]" << endl;
+    cout << " +----------------------------------------------------------+" << endl;
+    cout << left;
+    string trace_line = "> Detailed trace log:      results/trace.log";
+    cout << " | " << setw(57) << trace_line << "|" << endl;
+    string stats_line = "> Full statistics report:  results/stats.txt";
+    cout << " | " << setw(57) << stats_line << "|" << endl;
+    cout << " +----------------------------------------------------------+" << endl;
     cout << endl;
 }
 
@@ -125,14 +176,21 @@ int main(){
     stats->wallclock_time_secs = duration.count();
     stats->total_cycles = cpu->getCurrentCycle();
 
-    cout<<" [ DONE ] Simulation Completed Successfully."<<endl;
+    cout<<" [ DONE ] Simulation Completed Successfully."<<endl<<endl;
 
     log->printTable();
+    cout<<endl;
 
-    cout<<"\nCycles Consumed : "<<cpu->getCurrentCycle()<<" clock cycles\n\n";
-    cout<<"To see Cycle-by-Cycle Logs check : results/trace.log\n\n";
-    createInstructionStatusFile(log->getILogs());
+    //dump stats in stats.txt file
+    Statistics *statsdump = new Statistics();
+    statsdump->dumpStats();
+
+    printStatsSummary();
+
+    printFileLocation();
+
     //calling gantt chart python script
+    createInstructionStatusFile(log->getILogs());
     system("python3 ../results/gantt.py");
 
     return 0;
