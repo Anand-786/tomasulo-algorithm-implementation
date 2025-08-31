@@ -66,6 +66,14 @@ class FunctionalUnit{
             completed = false;
         }
 
+        int getOccupiedSlotCount(){
+            return ((reservationStations.size()) - (freeRS.size()));
+        }
+
+        bool getOccupied(){
+            return occupied;
+        }
+
         vector<ReservationStation*> getRS(){
             return reservationStations;
         }
@@ -80,14 +88,20 @@ class FunctionalUnit{
             ReservationStation *temp = NULL;
             int temp_index=-1,index=0;
             int min_glb_seq_num=INT_MAX;
+            bool isRawHazard = false;
             for(auto it: reservationStations){
                 if(it->isBusy() && it->isReadyForExecution() && (it->getGlobalSeqNum()<min_glb_seq_num) && (it->getSkipCycle()!=current_cycle)){
                     min_glb_seq_num = it->getGlobalSeqNum();
                     temp = it;
                     temp_index = index;
                 }
+
+                if(it->isBusy() && !it->isReadyForExecution())
+                    isRawHazard = true;
                 index++;
             }
+            if(isRawHazard)
+                stats->raw_hazard_stall_cycles += 1;
             if(!temp){
                 return -1;
             }

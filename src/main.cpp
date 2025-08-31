@@ -113,10 +113,17 @@ int main(){
     
     cout<<" [ INFO ] Executing Program..."<<endl;
 
+    auto start = chrono::high_resolution_clock::now();
+
     while(cpu->continueSimulation()){
         cpu->nextCycle();
         log->addCycleLogs(cpu->getCurrentCycle());
     }
+
+    auto end = chrono::high_resolution_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    stats->wallclock_time_secs = duration.count();
+    stats->total_cycles = cpu->getCurrentCycle();
 
     cout<<" [ DONE ] Simulation Completed Successfully."<<endl;
 

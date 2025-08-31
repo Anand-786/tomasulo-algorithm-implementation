@@ -82,8 +82,11 @@ class LSQ{
         int executeEffectiveAddress(int current_cycle){
             int ptr=head;
             int glb_s_n = -1;
+            bool isRawHazard = false;
             while(ptr!=tail){
                 auto it=lsq[ptr];
+                if(it->valid && !it->isRegValReady)
+                    isRawHazard = true;
                 if(it->valid && !it->addressCalculated && it->isRegValReady && (it->skip_cycle != current_cycle)){
                     agu->setImm(it->offset);
                     agu->setRegVal(it->regVal);
@@ -95,6 +98,8 @@ class LSQ{
                 }
                 ptr=(ptr+1)%size;
             }
+            if(isRawHazard)
+                stats->raw_hazard_stall_cycles += 1;
             return glb_s_n;
         }
 
@@ -123,14 +128,25 @@ class LSQ{
                     if(j==(head-1+size)%size){
                         //Can Load from Memory
                         it->loadedData = memory_map[currentEA];
+                        stats->l1d_overall_accesses += 1;
+                        stats->l1d_read_accesses += 1;
                         int penalty = cache->l1CacheSearchAndUpdate(current_cycle, currentEA, false);
                         if(penalty == 0){
                             //HIT
+                            //update stats
+                            stats->l1d_overall_hits += 1;
+                            stats->l1d_read_hits += 1;
+
                             it->isDataLoaded = true;
                             it->canWriteToCDB = true;
                             return it->global_seq_num;
                         }
                         //MISS
+                        //update stats
+                        stats->l1d_overall_misses += 1;
+                        stats->l1d_read_misses += 1;
+                        stats->l1d_total_miss_penalty += penalty;
+
                         isLoadPending = true;
                         dataReadyCycle = current_cycle + penalty;
                         pendingLoadEntry = it;
@@ -138,6 +154,7 @@ class LSQ{
                     }
                     if(lsq[j]->isDataReady){
                         //Store to Load Forwarding
+                        stats->store_to_load_forwards += 1;
                         it->loadedData = lsq[j]->dataToBeStored;
                         it->isDataLoaded = true;
                         it->canWriteToCDB = true;
@@ -152,8 +169,12 @@ class LSQ{
         bool canBeWrittenToCDB(LSQEntry *temp){
             if(temp->isLoad)
                 return temp->canWriteToCDB;
-            if(temp->addressCalculated && temp->isDataReady)
-                return temp->canWriteToCDB = true;
+            if(temp->addressCalculated){
+                if(temp->isDataReady)
+                    return temp->canWriteToCDB = true;
+                else    
+                    stats->raw_hazard_stall_cycles += 1;
+            }
             return false;
         }
 

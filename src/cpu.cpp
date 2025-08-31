@@ -166,45 +166,31 @@ class CPU{
             stats->total_insts = totalInstructions;
         }
 
-        void printProgram(){
-            cout<<"\nGiven Assembly Program :\n"<<endl;
-            queue<Instruction*> temp=instructionQueue;
-            while(!temp.empty()){
-                Instruction *instr = temp.front();
-                temp.pop();
-                int type=instr->getType(), dest=instr->getDestReg(), src1=instr->getSrc1Reg(), src2=instr->getSrc2Reg();
-                int imm=instr->getImmVal(), addr=instr->getAddress(), global_seq_num=instr->getGlobal_Seq_Num();
-                cout<<"Op: "<<instr->opcode_for_printing(type)<<"   ";
-                if(dest!=-1)
-                    cout<<"Dest: R"<<dest<<"   ";
-                if(src1!=-1)
-                    cout<<"Src1: R"<<src1<<"   ";
-                if(src2!=-1)
-                    cout<<"Src2: R"<<src2<<"   ";
-                if(imm!=-1)
-                    cout<<"Imm: "<<imm<<"  ";
-                if(addr!=-1)
-                    cout<<"Address: "<<addr<<"  ";
-                if(global_seq_num!=-1)
-                    cout<<"SEQ num: "<<global_seq_num<<"  ";
-                cout<<"\n\n";
-            }
-            cout<<endl;
-        }
-
         bool continueSimulation(){
             return !(instructionQueue.empty() && rob->isEmpty());
         }
 
         void nextCycle(){
             current_cycle++;
+
             commit();
             writeCDB();
             memAccess();
             execute();
             issue();
 
-            stats->total_cycles = current_cycle;
+            updateStats();
+        }
+
+        void updateStats(){
+            stats->total_rob_occupancy += (rob->getCount());
+            stats->rob_peak_occupancy = max((int)stats->rob_peak_occupancy, rob->getCount());
+            stats->total_lsq_occupancy += (lsq->getCount());
+            stats->lsq_peak_occupancy = max((int)stats->lsq_peak_occupancy, lsq->getCount());
+            stats->total_rs_occupancy = (ALU_FU->getOccupiedSlotCount()) + (MUL_FU->getOccupiedSlotCount()) + (DIV_FU->getOccupiedSlotCount());
+            stats->total_alu_occupancy += ALU_FU->getOccupied();
+            stats->total_mul_occupancy += MUL_FU->getOccupied();
+            stats->total_div_occupancy += DIV_FU->getOccupied();
         }
 
         void commit(){
@@ -218,11 +204,32 @@ class CPU{
             }
             else{
                 memory_map[rob->getDest()] = rob->getResult();
+
                 //Set Dirty Bit and LRU counter in L1 cache
-                cache->l1CacheSearchAndUpdate(current_cycle, rob->getDest(), true);
+                int penalty = cache->l1CacheSearchAndUpdate(current_cycle, rob->getDest(), true);
+
+                //Update Stats
+                stats->l1d_overall_accesses += 1;
+                stats->l1d_write_accesses += 1;
+                if(penalty==0){
+                    //HIT
+                    stats->l1d_overall_hits += 1;
+                    stats->l1d_write_hits += 1;
+                }
+                else{
+                    //MISS
+                    stats->l1d_overall_misses += 1;
+                    stats->l1d_write_misses += 1;
+                    stats->l1d_total_miss_penalty += penalty;
+                }
             }
             //update commit cycle
             instructionLogs[rob->getGlobalSeqNum()]->commitCycle = current_cycle;
+
+            //update stats
+            stats->total_instr_latency += (instructionLogs[rob->getGlobalSeqNum()]->commitCycle - instructionLogs[rob->getGlobalSeqNum()]->issueCycle);
+            stats->inst_latency_max = max((int)stats->inst_latency_max, 
+                                            (instructionLogs[rob->getGlobalSeqNum()]->commitCycle - instructionLogs[rob->getGlobalSeqNum()]->issueCycle));
 
             //free the lsq head
             if(rob->isLoadStoreInstr())
@@ -295,6 +302,7 @@ class CPU{
             instructionLogs[arbitration]->writeCDBCycle = current_cycle;
 
             //part 3 : load values on CDB
+            stats->cdb_total_broadcasts += 1;
             cdb->setResult(result_val);
             cdb->setROBEntryNum(result_dest_rob_entry_num);
             cdb->setDestinationAddress(result_memory_address);
