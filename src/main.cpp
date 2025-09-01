@@ -74,9 +74,9 @@ void printFileLocation(){
     cout << " +----------------------------------------------------------+" << endl;
     cout << left;
     string trace_line = "> Detailed trace log:      results/trace.log";
-    cout << " | " << setw(57) << trace_line << "|" << endl;
+    cout << " |  " << setw(56) << trace_line << "|" << endl;
     string stats_line = "> Full statistics report:  results/stats.txt";
-    cout << " | " << setw(57) << stats_line << "|" << endl;
+    cout << " |  " << setw(56) << stats_line << "|" << endl;
     cout << " +----------------------------------------------------------+" << endl;
     cout << endl;
 }

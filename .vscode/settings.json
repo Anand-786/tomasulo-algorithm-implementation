@@ -16,6 +16,8 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp"
     }
 }

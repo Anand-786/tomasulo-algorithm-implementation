@@ -37,23 +37,53 @@ class CPU{
         FunctionalUnit *ADDR_FU;
         Cache *cache;
 
-
-        vector<string> parseInstruction(string &line){
-            string opcode;
-            istringstream iss(line);
-            iss>>opcode;
-            string rest;
-            getline(iss, rest);
-            string token;
-            istringstream ss(rest);
-            vector<string> instruction;
-            instruction.push_back(opcode);
-            while (getline(ss, token, ',')) {
-                token.erase(remove_if(token.begin(), token.end(), ::isspace), token.end());
-                if (!token.empty()) 
-                    instruction.push_back(token);
+        string trim(const string& str) {
+            size_t first = str.find_first_not_of(" \t\n\r");
+            if (string::npos == first) {
+                return str;
             }
-            return instruction;
+            size_t last = str.find_last_not_of(" \t\n\r");
+            return str.substr(first, (last - first + 1));
+        }
+
+        vector<string> parse_line(const string& line) {
+            vector<string> result_vector;
+            string line_to_process = line;
+            string instruction_part;
+
+            size_t colon_pos = line_to_process.find(':');
+            
+            if (colon_pos != string::npos) {
+                string label = line_to_process.substr(0, colon_pos);
+                result_vector.push_back(trim(label));
+                
+                instruction_part = line_to_process.substr(colon_pos + 1);
+            } else {
+                instruction_part = line_to_process;
+            }
+
+            replace(instruction_part.begin(), instruction_part.end(), ',', ' ');
+
+            stringstream ss(instruction_part);
+            string word;
+            
+            while (ss >> word) {
+                result_vector.push_back(word);
+            }
+
+            return result_vector;
+        }
+
+        string reconstructInstruction(vector<string> instruction){
+            string instr=instruction[0];
+            string sp(6-instr.length(),' ');
+            instr.append(sp);
+            int len=instruction.size();
+            for(int i=1;i<len-1;i++){
+                instr.append(instruction[i].append(", "));
+            }
+            instr.append(instruction.back());
+            return instr;
         }
 
     public:
@@ -85,14 +115,26 @@ class CPU{
             }
             string line;
             int global_seq_num=0;
+            bool isLabelPresent=false;
             while (getline(file, line)) {
                 if (!line.empty() && line[0] != '#'){
                     global_seq_num++;
-                    vector<string> instruction = parseInstruction(line);
+                    vector<string> instruction = parse_line(line);
+
+                    if(instruction.size()==5){
+                        if(!isLabelPresent){
+                            isLabelPresent = true;
+                        }
+                        else{
+                            cout<<"Found Multiple Labels. Simulator supports only 1 looping label!.\nExiting..."<<endl;
+                            exit(1);
+                        }
+                        instruction.erase(instruction.begin());
+                    }
                     
                     //Initializing instruction logs for logging.
                     instructionLog *newInstruction = new instructionLog();
-                    newInstruction->instruction = line;
+                    newInstruction->instruction = reconstructInstruction(instruction);
                     newInstruction->issueCycle = 0;
                     newInstruction->executeStartCycle = 0;
                     newInstruction->memAccessCycle = 0;
