@@ -36,9 +36,10 @@ class Cache{
         int mem_access_latency;
         int wb_latency;
         int vc_access_latency;
+        bool victim_cache_enabled;
         VictimCache *victim_cache;
     public:
-        Cache(int ns, int as, int bs, int ab, int mm, int wb, int vc){
+        Cache(int ns, int as, int bs, int ab, int mm, int wb, int vc, int vc_s, bool vc_e){
             num_sets = ns;
             associativity = as;
             block_size = bs;
@@ -46,7 +47,8 @@ class Cache{
             mem_access_latency = mm;
             wb_latency = wb;
             vc_access_latency = vc;
-            victim_cache = new VictimCache(8);
+            victim_cache_enabled = vc_e;
+            victim_cache = new VictimCache(vc_s);
             sets.resize(num_sets);
             for(int i=0;i<num_sets;i++)
                 sets[i] = new CacheSet(associativity);
@@ -137,7 +139,9 @@ class Cache{
             bool isEvictLineDirty = evictLine->dirty;
 
             //Check in Victim Cache
-            bool hitInVictimCache = victim_cache->checkInVictimCache(getAddressWithoutBO(address), evictLine->cache_line_address);
+            bool hitInVictimCache;
+            if(victim_cache_enabled)
+                hitInVictimCache = victim_cache->checkInVictimCache(getAddressWithoutBO(address), evictLine->cache_line_address);
 
             //Overwrite here, but return Penalty accoridng to Dirty Bit
             evictLine->valid = true;
@@ -148,14 +152,22 @@ class Cache{
 
             if(isEvictLineDirty){
                 //Case 3A : Replacement of Dirty Block
-                if(hitInVictimCache)
-                    return (vc_access_latency + wb_latency - 1);
-                else
-                    return (vc_access_latency + mem_access_latency + wb_latency - 1);
+                if(victim_cache_enabled){
+                    if(hitInVictimCache)
+                        return (vc_access_latency + wb_latency - 1);
+                    else
+                        return (vc_access_latency + mem_access_latency + wb_latency - 1);
+                }
+                else{
+                    return (mem_access_latency + wb_latency - 1);
+                }
             }
             //Case 3B : Overwrite Clean Block
-            if(hitInVictimCache)
-                return (vc_access_latency - 1);
-            return (vc_access_latency + mem_access_latency - 1);
+            if(victim_cache_enabled){
+                if(hitInVictimCache)
+                    return (vc_access_latency - 1);
+                return (vc_access_latency + mem_access_latency - 1);
+            }
+            return (mem_access_latency - 1);
         }
 };

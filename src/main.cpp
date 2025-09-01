@@ -16,6 +16,7 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |     - " << setw(keyWidth) << "Associativity" << ": " << setw(valWidth) << to_string(config->associativity)+"-way" << "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Block Size" << ": " << setw(valWidth) << to_string(config->block_size)+" B" << "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Physical Address" << ": " << setw(valWidth) << to_string(config->address_bits)+" bits" << "|" <<  endl;
+    cout << " |     - " << setw(keyWidth) << "Victim Cache Size" << ": " << setw(valWidth) << to_string(config->victim_cache_size)+"" <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Victim Cache Access" << ": " << setw(valWidth) << to_string(config->vc_access_latency)+" cycles" <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Memory Fetch Latency" << ": " << setw(valWidth) << to_string(config->mem_fetch_latency)+" cycles" << "|" <<  endl;
     cout << " |     - " << setw(keyWidth) << "Writeback Latency" << ": " << setw(valWidth) << to_string(config->wb_latency)+" cycles" <<  "|" << endl;
@@ -23,6 +24,10 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " | > Simulator Properties :" <<setw(valWidth+6)<<" "<<"|"<< endl;
     cout << " |     - " << setw(keyWidth) << "Program File" << ": " << setw(valWidth) << filename <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "#Iterations" << ": " << setw(valWidth) << to_string(config->num_iterations) <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Victim Cache " << ": " << setw(valWidth) << (config->victim_cache_enabled?"Enabled":"Disabled") <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Logs" << ": " << setw(valWidth) << (config->trace_file_enabled?"Enabled":"Disabled") <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Gantt Chart" << ": " << setw(valWidth) << (config->gantt_chart_enabled?"Enabled":"Disabled") <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Show Status Table" << ": " << setw(valWidth) << (config->instruction_table_display?"On":"Off") <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "ROB entries" << ": " << setw(valWidth) << to_string(config->rob_size) << "|" <<  endl;
     cout << " |     - " << setw(keyWidth) << "LSQ entries" << ": " << setw(valWidth) << to_string(config->lsq_size) <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Reservation Stations" << ": " << setw(valWidth) << to_string(config->num_alu_rs)+" (ALU), "+to_string(config->num_mul_rs)+" (MUL), "+to_string(config->num_div_rs)+" (DIV)" <<  "|" << endl;
@@ -133,8 +138,13 @@ SimConfig* loadConfig(string &config_path){
     config->mem_fetch_latency = reader.GetInteger("Cache", "mem_fetch_latency", 50);
     config->wb_latency = reader.GetInteger("Cache", "wb_latency", 10);
     config->vc_access_latency = reader.GetInteger("Cache", "vc_access_latency", 3);
+    config->victim_cache_size = reader.GetInteger("Cache", "victim_cache_size", 8);
     config->filepath = reader.GetString("Simulation", "program_file_path", "program.asm");
     config->num_iterations = reader.GetInteger("Simulation", "num_iterations", 2);
+    config->victim_cache_enabled = reader.GetBoolean("Simulation", "victim_cache_enabled", true);
+    config->trace_file_enabled = reader.GetBoolean("Simulation", "trace_file_enabled", true);
+    config->gantt_chart_enabled = reader.GetBoolean("Simulation", "gantt_chart_enabled", true);
+    config->instruction_table_display = reader.GetBoolean("Simulation", "instruction_table_display", true);
     return config;
 }
 
@@ -157,11 +167,14 @@ int main(){
     string config_path = "../config/config.ini";
     SimConfig *config = loadConfig(config_path);
     Cache *cache = new Cache(config->num_sets, config->associativity, config->block_size, 
-                            config->address_bits, config->mem_fetch_latency, config->wb_latency, config->vc_access_latency);
+                            config->address_bits, config->mem_fetch_latency, config->wb_latency, 
+                            config->vc_access_latency, config->victim_cache_size, config->victim_cache_enabled);
     CPU *cpu = new CPU(config, cache);
     string filename = config->filepath;
     cpu->loadProgram(filename);
-    Logs *log = new Logs(cpu->getAluFU(), cpu->getMulFU(), cpu->getDivFU(), cpu->getLSQ(), cpu->getROB(), cpu->getRegisters(),
+    Logs *log;
+    if(config->trace_file_enabled)
+        log = new Logs(cpu->getAluFU(), cpu->getMulFU(), cpu->getDivFU(), cpu->getLSQ(), cpu->getROB(), cpu->getRegisters(),
                         cpu->getRSI(), cpu->getMemoryMap(), cpu->getInstructionLogs());
 
     printConfig(filename, config, cache);
@@ -172,7 +185,8 @@ int main(){
 
     while(cpu->continueSimulation()){
         cpu->nextCycle();
-        log->addCycleLogs(cpu->getCurrentCycle());
+        if(config->trace_file_enabled)
+            log->addCycleLogs(cpu->getCurrentCycle());
     }
 
     auto end = chrono::high_resolution_clock::now();
@@ -182,8 +196,10 @@ int main(){
 
     cout<<" [ DONE ] Simulation Completed Successfully."<<endl<<endl;
 
-    log->printTable();
-    cout<<endl;
+    if(config->instruction_table_display){
+        log->printTable();
+        cout<<endl;
+    }
 
     //dump stats in stats.txt file
     Statistics *statsdump = new Statistics();
@@ -194,8 +210,10 @@ int main(){
     printFileLocation();
 
     //calling gantt chart python script
-    createInstructionStatusFile(log->getILogs());
-    system("python3 ../results/gantt.py");
+    if(config->gantt_chart_enabled){
+        createInstructionStatusFile(log->getILogs());
+        system("python3 ../results/gantt.py");
+    }
 
     return 0;
 }

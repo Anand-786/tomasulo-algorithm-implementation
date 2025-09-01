@@ -24,8 +24,13 @@ struct SimConfig{
     int mem_fetch_latency;
     int wb_latency;
     int vc_access_latency; 
+    int victim_cache_size;
 
     //Simulation
     string filepath;
     int num_iterations;
+    bool victim_cache_enabled;
+    bool trace_file_enabled;
+    bool gantt_chart_enabled;
+    bool instruction_table_display;
 };
