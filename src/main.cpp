@@ -21,6 +21,7 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |                                                          |"<<endl;
     cout << " | > Simulator Properties :" <<setw(valWidth+6)<<" "<<"|"<< endl;
     cout << " |     - " << setw(keyWidth) << "Program File" << ": " << setw(valWidth) << filename <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "#Iterations" << ": " << setw(valWidth) << to_string(config->num_iterations) <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "ROB entries" << ": " << setw(valWidth) << to_string(config->rob_size) << "|" <<  endl;
     cout << " |     - " << setw(keyWidth) << "LSQ entries" << ": " << setw(valWidth) << to_string(config->lsq_size) <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Reservation Stations" << ": " << setw(valWidth) << to_string(config->num_alu_rs)+" (ALU), "+to_string(config->num_mul_rs)+" (MUL), "+to_string(config->num_div_rs)+" (DIV)" <<  "|" << endl;
@@ -131,6 +132,7 @@ SimConfig* loadConfig(string &config_path){
     config->miss_penalty_no_replacement = reader.GetInteger("Cache", "miss_penalty_no_replacement", 12);
     config->miss_penalty_with_replacement = reader.GetInteger("Cache", "miss_penalty_with_replacement", 20);
     config->filepath = reader.GetString("Simulation", "program_file_path", "program.asm");
+    config->num_iterations = reader.GetInteger("Simulation", "num_iterations", 2);
     return config;
 }
 

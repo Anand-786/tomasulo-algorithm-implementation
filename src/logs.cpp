@@ -38,17 +38,17 @@ class Logs{
         void printTable(){
             cout<<"\n [ FINAL INSTRUCTION STATUS ]"<<endl;
             cout<<" +";
-            cout << setfill('-') << setw(80) << "" << setfill(' ') << "+\n";
-            cout << left << setw(25) << " | Instruction" << "| "
+            cout << setfill('-') << setw(85) << "" << setfill(' ') << "+\n";
+            cout << left << setw(30) << " |  Instruction" << "| "
                     << setw(7) << "Issue" << "| "
                     << setw(11) << "ExecStart" << "| "
                     << setw(9) << "ReadMem" << "| "
                     << setw(10) << "WriteCDB" << "| "
                     << setw(10) << "Commit" << "| \n";
                 cout<<" |";
-                cout << setfill('-') << setw(80) << "" << setfill(' ') << "| \n";
+                cout << setfill('-') << setw(85) << "" << setfill(' ') << "| \n";
                 for (auto const& [key, val] : *instructionLogs) {
-                    cout << left << setw(25) << " | " + val->instruction << "| "
+                    cout << left << setw(30) << " |  " + val->instruction << "| "
                         << setw(7) << (val->issueCycle == 0 ? "-" : to_string(val->issueCycle)) << "| "
                         << setw(11) << (val->executeStartCycle == 0 ? "-" : to_string(val->executeStartCycle)) << "| "
                         << setw(9) << (val->memAccessCycle == 0 ? "-" : to_string(val->memAccessCycle)) << "| "
@@ -56,7 +56,7 @@ class Logs{
                         << setw(10) << (val->commitCycle == 0 ? "-" : to_string(val->commitCycle)) << "| \n";
                 }
             cout<<" +";
-            cout << setfill('-') << setw(80) << "" << setfill(' ') << "+\n";
+            cout << setfill('-') << setw(85) << "" << setfill(' ') << "+\n";
             cout << endl;
         }
 

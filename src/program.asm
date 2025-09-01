@@ -4,3 +4,4 @@
 STORE R1, 0(R3)
                         LOAD  R4, 0(R1)
                 SUB  R5, R4, R2
+                                                BEQ   R15, R16, Loop

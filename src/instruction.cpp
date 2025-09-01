@@ -9,6 +9,7 @@ const int MUL=3;
 const int DIV=4;
 const int LOAD=5;
 const int STORE=6;
+const int BEQ=7;
 
 class Instruction{
     private:
@@ -60,6 +61,8 @@ class Instruction{
                     return "LOAD";
                 case STORE:
                     return "STORE";
+                case BEQ:
+                    return "BEQ";
                 default:
                     return ""; 
             }

@@ -30,6 +30,10 @@ class ROB{
             count=0;
         }
 
+        int getOpcode(){
+            return rob[head]->opcode;
+        }
+
         int getTotalSize(){
             return size;
         }
@@ -52,7 +56,7 @@ class ROB{
 
         bool isRegisterWrite(){
             int op=rob[head]->opcode;
-            if(op<=5)
+            if(op<=LOAD || op==BEQ)
                 return true;
             return false;
         }
@@ -88,7 +92,7 @@ class ROB{
 
         bool isLoadStoreInstr(){
             int op=rob[head]->opcode;
-            return (op>=5);
+            return (op==LOAD || op==STORE);
         }
 
         int getCount(){
@@ -101,6 +105,11 @@ class ROB{
 
         RobEntry* getROBEntry(int index){
             return rob[index];
+        }
+
+        void setROBEntryReady(int type, int rob_entry_num){
+            if(type==BEQ)
+                rob[rob_entry_num]->isReady = true;
         }
 
         void cdbWrite(int rob_entry_num, int res, int destinationAddress){

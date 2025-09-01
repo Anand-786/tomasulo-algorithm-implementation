@@ -26,4 +26,5 @@ struct SimConfig{
 
     //Simulation
     string filepath;
+    int num_iterations;
 };

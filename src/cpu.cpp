@@ -27,6 +27,7 @@ class CPU{
         LSQ *lsq;
         CDB *cdb;
         int current_cycle;
+        int num_iterations;
         unordered_map<int, int> memory_map;
         unordered_map<int, vector<ReservationStation*>> waitingRS;
         unordered_map<int, vector<LSQEntry*>> waitingLS; 
@@ -101,6 +102,7 @@ class CPU{
                 rsi[i]=-1;
                 registers[i]=1;
             }
+            num_iterations = config->num_iterations;
         }
 
         int getCurrentCycle(){
@@ -116,6 +118,11 @@ class CPU{
             string line;
             int global_seq_num=0;
             bool isLabelPresent=false;
+            string label="";
+            vector<Instruction*> preLoopInstr;
+            vector<string> preLoopInstrString;
+            vector<Instruction*> loopInstr;
+            vector<string> loopInstrString;
             while (getline(file, line)) {
                 if (!line.empty() && line[0] != '#'){
                     global_seq_num++;
@@ -124,6 +131,7 @@ class CPU{
                     if(instruction.size()==5){
                         if(!isLabelPresent){
                             isLabelPresent = true;
+                            label=instruction[0];
                         }
                         else{
                             cout<<"Found Multiple Labels. Simulator supports only 1 looping label!.\nExiting..."<<endl;
@@ -131,16 +139,12 @@ class CPU{
                         }
                         instruction.erase(instruction.begin());
                     }
-                    
-                    //Initializing instruction logs for logging.
-                    instructionLog *newInstruction = new instructionLog();
-                    newInstruction->instruction = reconstructInstruction(instruction);
-                    newInstruction->issueCycle = 0;
-                    newInstruction->executeStartCycle = 0;
-                    newInstruction->memAccessCycle = 0;
-                    newInstruction->writeCDBCycle = 0;
-                    newInstruction->commitCycle = 0;
-                    instructionLogs[global_seq_num] = newInstruction;
+
+                    if(!isLabelPresent)
+                        preLoopInstrString.push_back(reconstructInstruction(instruction));
+                    else    
+                        loopInstrString.push_back(reconstructInstruction(instruction));
+                
 
                     if(instruction.size()>3){
                         int opcode;
@@ -155,6 +159,8 @@ class CPU{
                             opcode=DIV;
                         else if(op=="ADDI")
                             opcode=ADDI;
+                        else if(op=="BEQ")
+                            opcode=BEQ;
                         else{
                             cerr<<"Instruction type not defined :"<<op<<endl;
                             return;
@@ -163,12 +169,34 @@ class CPU{
                         if(opcode==ADDI){
                             src2=stoi(instruction[3]);
                             Instruction *instr = new Instruction(opcode,dest,src1,-1,src2,-1,global_seq_num);
-                            instructionQueue.push(instr);
+                            if(!isLabelPresent)
+                                preLoopInstr.push_back(instr);
+                            else
+                                loopInstr.push_back(instr);
+                        }
+                        else if(opcode==BEQ){
+                            dest=0;
+                            src1=stoi(instruction[1].substr(1));
+                            src2=stoi(instruction[2].substr(1));
+                            if(instruction[3]==label){
+                                Instruction *instr = new Instruction(opcode,dest,src1,src2,-1,-1,global_seq_num);
+                                if(!isLabelPresent)
+                                    preLoopInstr.push_back(instr);
+                                else
+                                    loopInstr.push_back(instr);
+                            }
+                            else{
+                                cout<<" Label Not Found!\nExiting..."<<endl;
+                                exit(1);
+                            }
                         }
                         else{
                             src2=stoi(instruction[3].substr(1));
                             Instruction *instr = new Instruction(opcode,dest,src1,src2,-1,-1,global_seq_num);
-                            instructionQueue.push(instr);
+                            if(!isLabelPresent)
+                                preLoopInstr.push_back(instr);
+                            else
+                                loopInstr.push_back(instr);
                         }
                     }
                     else{
@@ -179,7 +207,7 @@ class CPU{
                         else if(op=="STORE")
                             opcode=STORE;
                         else{
-                            cerr<<"Instruction Type not supoorted :"<<op<<endl;
+                            cerr<<"Instruction Type not supported :"<<op<<endl;
                             return;
                         }
                         int first_reg=stoi(instruction[1].substr(1));
@@ -194,16 +222,56 @@ class CPU{
                         reg=stoi(r);
                         if(opcode==LOAD){
                             Instruction *instr = new Instruction(opcode,first_reg,reg,-1,imm,-1,global_seq_num);
-                            instructionQueue.push(instr);
+                            if(!isLabelPresent)
+                                preLoopInstr.push_back(instr);
+                            else
+                                loopInstr.push_back(instr);
                         }
                         else{
                             Instruction *instr = new Instruction(opcode,-1,first_reg,reg,imm,-1,global_seq_num);
-                            instructionQueue.push(instr);
+                            if(!isLabelPresent)
+                                preLoopInstr.push_back(instr);
+                            else
+                                loopInstr.push_back(instr);
                         }
                     }
                 }
             }
             file.close();
+            global_seq_num=0;
+            for(int i=0;i<preLoopInstr.size();i++){
+                global_seq_num++;
+                instructionQueue.push(preLoopInstr[i]);
+
+                //Initializing instruction logs for logging.
+                instructionLog *newInstruction = new instructionLog();
+                newInstruction->instruction = preLoopInstrString[i];
+                newInstruction->issueCycle = 0;
+                newInstruction->executeStartCycle = 0;
+                newInstruction->memAccessCycle = 0;
+                newInstruction->writeCDBCycle = 0;
+                newInstruction->commitCycle = 0;
+                instructionLogs[global_seq_num] = newInstruction;
+            }
+            for(int i=1;i<=num_iterations;i++){
+                for(int j=0;j<loopInstr.size();j++){
+                    global_seq_num++;
+                    Instruction *instr = new Instruction(loopInstr[j]->getType(),loopInstr[j]->getDestReg(),loopInstr[j]->getSrc1Reg(),
+                                                            loopInstr[j]->getSrc2Reg(),loopInstr[j]->getImmVal(),loopInstr[j]->getAddress(),
+                                                                global_seq_num);
+                    instructionQueue.push(instr);
+
+                    //Initializing instruction logs for logging.
+                    instructionLog *newInstruction = new instructionLog();
+                    newInstruction->instruction = loopInstrString[j];
+                    newInstruction->issueCycle = 0;
+                    newInstruction->executeStartCycle = 0;
+                    newInstruction->memAccessCycle = 0;
+                    newInstruction->writeCDBCycle = 0;
+                    newInstruction->commitCycle = 0;
+                    instructionLogs[global_seq_num] = newInstruction;
+                }
+            }
             totalInstructions = instructionQueue.size();
             stats->total_insts = totalInstructions;
         }
@@ -241,8 +309,10 @@ class CPU{
             }
             
             if(rob->isRegisterWrite()){
-                registers[rob->getDest()] = rob->getResult();
-                rsi[rob->getDest()] = -1;
+                if(rob->getOpcode()!=BEQ){
+                    registers[rob->getDest()] = rob->getResult();
+                    rsi[rob->getDest()] = -1;
+                }
             }
             else{
                 memory_map[rob->getDest()] = rob->getResult();
@@ -395,15 +465,21 @@ class CPU{
             int glb_lsq = lsq->executeEffectiveAddress(current_cycle);
             if(glb_lsq!=-1)
                 instructionLogs[glb_lsq]->executeStartCycle = current_cycle;
-            int glb_alu = ALU_FU->executeIfPossible(current_cycle);
-            if(glb_alu!=-1)
-                instructionLogs[glb_alu]->executeStartCycle = current_cycle;
-            int glb_mul = MUL_FU->executeIfPossible(current_cycle);
-            if(glb_mul!=-1)
-                instructionLogs[glb_mul]->executeStartCycle = current_cycle;
-            int glb_div = DIV_FU->executeIfPossible(current_cycle);
-            if(glb_div!=-1)
-                instructionLogs[glb_div]->executeStartCycle = current_cycle;
+
+            pair<int,int> glb_alu = ALU_FU->executeIfPossible(current_cycle);
+            if(glb_alu.first!=-1){
+                instructionLogs[glb_alu.first]->executeStartCycle = current_cycle;
+                if(glb_alu.second!=-1)
+                    rob->setROBEntryReady(BEQ, glb_alu.second);
+            }
+
+            pair<int,int> glb_mul = MUL_FU->executeIfPossible(current_cycle);
+            if(glb_mul.first!=-1)
+                instructionLogs[glb_mul.first]->executeStartCycle = current_cycle;
+
+            pair<int,int> glb_div = DIV_FU->executeIfPossible(current_cycle);
+            if(glb_div.first!=-1)
+                instructionLogs[glb_div.first]->executeStartCycle = current_cycle;
         }
 
         void issue(){
@@ -416,11 +492,12 @@ class CPU{
             if(!robAvailable){
                 return;
             }
-            if(instrToBeIssued->getType() <= DIV){
+            if(instrToBeIssued->getType() <= DIV || (instrToBeIssued->getType() == BEQ)){
                 switch (instrToBeIssued->getType()){
                     case ADD:
                     case SUB:
                     case ADDI:
+                    case BEQ:
                         rsAvailable = ALU_FU->freeRSAvailable();
                         break;
                     case MUL:
@@ -482,13 +559,15 @@ class CPU{
                 }
 
                 //update RSI for dest register
-                rsi[instrToBeIssued->getDestReg()] = robSlot;
+                if(op!=BEQ)
+                    rsi[instrToBeIssued->getDestReg()] = robSlot;
 
                 ReservationStation *alotted;
                 switch (instrToBeIssued->getType()){
                     case ADD:
                     case SUB:
                     case ADDI:
+                    case BEQ:
                         alotted = ALU_FU->issueInRS(op, Qj, Qk, Vj, Vk, robSlot, glb_seq_num);
                         break;
                     case MUL:
@@ -513,6 +592,7 @@ class CPU{
                     case ADD:
                     case SUB:
                     case ADDI:
+                    case BEQ:
                         stats->op_class_int_alu++;
                         break;
                     case MUL:

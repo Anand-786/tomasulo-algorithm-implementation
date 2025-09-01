@@ -78,11 +78,11 @@ class FunctionalUnit{
             return reservationStations;
         }
 
-        int executeIfPossible(int current_cycle){
+        pair<int, int> executeIfPossible(int current_cycle){
             if(occupied){
                 advanceCycle();
                 markIfCompleted();
-                return -1;
+                return {-1,-1};
             }
             //assign a new instruction to execute
             ReservationStation *temp = NULL;
@@ -103,7 +103,7 @@ class FunctionalUnit{
             if(isRawHazard)
                 stats->raw_hazard_stall_cycles += 1;
             if(!temp){
-                return -1;
+                return {-1,-1};
             }
             
             setOccupied(true);
@@ -133,7 +133,14 @@ class FunctionalUnit{
             //mark RS as empty
             reservationStations[temp_index]->setBusy(false);
             freeRS.insert(temp_index);
-            return global_seq_num;
+
+            if(temp->getOpcode() == BEQ){
+                markIncomplete();
+                setOccupied(false);
+                result=0;
+                return {global_seq_num,rob_entry_num};
+            }
+            return {global_seq_num,-1};
         }
 
         bool freeRSAvailable(){
