@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cmath>
+#include "victimCache.cpp"
 using namespace std;
 
 struct CacheLine{
@@ -8,8 +9,9 @@ struct CacheLine{
     bool dirty;
     int tag;
     int lru_counter;
+    int cache_line_address;
 
-    CacheLine() : valid(false), dirty(false), tag(0), lru_counter(0) {}
+    CacheLine() : valid(false), dirty(false), tag(0), lru_counter(0), cache_line_address(0) {}
 };
 
 struct CacheSet{
@@ -31,16 +33,20 @@ class Cache{
         int associativity;
         int block_size;
         int address_bits;
-        int miss_penalty_no_replacement;
-        int miss_penalty_with_replacement;
+        int mem_access_latency;
+        int wb_latency;
+        int vc_access_latency;
+        VictimCache *victim_cache;
     public:
-        Cache(int ns, int as, int bs, int ab, int mp_no_rp, int mp_w_rp){
+        Cache(int ns, int as, int bs, int ab, int mm, int wb, int vc){
             num_sets = ns;
             associativity = as;
             block_size = bs;
             address_bits = ab;
-            miss_penalty_no_replacement = mp_no_rp;
-            miss_penalty_with_replacement = mp_w_rp;
+            mem_access_latency = mm;
+            wb_latency = wb;
+            vc_access_latency = vc;
+            victim_cache = new VictimCache(8);
             sets.resize(num_sets);
             for(int i=0;i<num_sets;i++)
                 sets[i] = new CacheSet(associativity);
@@ -63,6 +69,11 @@ class Cache{
             //Total Size (int KB) = 2^x KB
             int total_bits = getSetIndexBits() + getAssociativityBits() + getBlockOffsetBits();
             return total_bits - 10;
+        }
+
+        int getAddressWithoutBO(int address){
+            int address_without_BO = address >> getBlockOffsetBits();
+            return address_without_BO;
         }
 
         pair<int, int> getTagAndSetIndex(int address){
@@ -104,13 +115,14 @@ class Cache{
                         cache_line->lru_counter = current_cycle;
                         cache_line->tag = tag;
                         cache_line->dirty = setDirty;
+                        cache_line->cache_line_address = getAddressWithoutBO(address);
                         search_set->valid_lines += 1;
-                        return miss_penalty_no_replacement - 1;
+                        return mem_access_latency - 1;
                     }
                 }
             }
             //Case 3 : Miss with No Space (Conflict Miss)
-            //Replacement Policy : LRU (Least Recently USed)
+            //Replacement Policy : LRU (Least Recently Used)
             CacheLine *evictLine = NULL;
             int least_recently_used_cycle = current_cycle;
             for(auto cache_line : search_set->set){
@@ -124,17 +136,26 @@ class Cache{
 
             bool isEvictLineDirty = evictLine->dirty;
 
+            //Check in Victim Cache
+            bool hitInVictimCache = victim_cache->checkInVictimCache(getAddressWithoutBO(address), evictLine->cache_line_address);
+
             //Overwrite here, but return Penalty accoridng to Dirty Bit
             evictLine->valid = true;
             evictLine->dirty = setDirty;
             evictLine->lru_counter = current_cycle;
             evictLine->tag = tag;
+            evictLine->cache_line_address = getAddressWithoutBO(address);
 
             if(isEvictLineDirty){
                 //Case 3A : Replacement of Dirty Block
-                return miss_penalty_with_replacement - 1;
+                if(hitInVictimCache)
+                    return (vc_access_latency + wb_latency - 1);
+                else
+                    return (vc_access_latency + mem_access_latency + wb_latency - 1);
             }
             //Case 3B : Overwrite Clean Block
-            return miss_penalty_no_replacement - 1;
+            if(hitInVictimCache)
+                return (vc_access_latency - 1);
+            return (vc_access_latency + mem_access_latency - 1);
         }
 };

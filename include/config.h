@@ -21,8 +21,9 @@ struct SimConfig{
     int associativity;
     int block_size;
     int address_bits;
-    int miss_penalty_no_replacement;
-    int miss_penalty_with_replacement;
+    int mem_fetch_latency;
+    int wb_latency;
+    int vc_access_latency; 
 
     //Simulation
     string filepath;

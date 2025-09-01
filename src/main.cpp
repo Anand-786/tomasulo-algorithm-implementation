@@ -16,8 +16,9 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |     - " << setw(keyWidth) << "Associativity" << ": " << setw(valWidth) << to_string(config->associativity)+"-way" << "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Block Size" << ": " << setw(valWidth) << to_string(config->block_size)+" B" << "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Physical Address" << ": " << setw(valWidth) << to_string(config->address_bits)+" bits" << "|" <<  endl;
-    cout << " |     - " << setw(keyWidth) << "Miss Penalty (Clean)" << ": " << setw(valWidth) << to_string(config->miss_penalty_no_replacement)+" cycles" <<  "|" << endl;
-    cout << " |     - " << setw(keyWidth) << "Miss Penalty (Dirty)" << ": " << setw(valWidth) << to_string(config->miss_penalty_with_replacement)+" cycles" << "|" <<  endl;
+    cout << " |     - " << setw(keyWidth) << "Victim Cache Access" << ": " << setw(valWidth) << to_string(config->vc_access_latency)+" cycles" <<  "|" << endl;
+    cout << " |     - " << setw(keyWidth) << "Memory Fetch Latency" << ": " << setw(valWidth) << to_string(config->mem_fetch_latency)+" cycles" << "|" <<  endl;
+    cout << " |     - " << setw(keyWidth) << "Writeback Latency" << ": " << setw(valWidth) << to_string(config->wb_latency)+" cycles" <<  "|" << endl;
     cout << " |                                                          |"<<endl;
     cout << " | > Simulator Properties :" <<setw(valWidth+6)<<" "<<"|"<< endl;
     cout << " |     - " << setw(keyWidth) << "Program File" << ": " << setw(valWidth) << filename <<  "|" << endl;
@@ -129,8 +130,9 @@ SimConfig* loadConfig(string &config_path){
     config->associativity = reader.GetInteger("Cache", "associativity", 8);
     config->block_size = reader.GetInteger("Cache", "block_size", 64);
     config->address_bits = reader.GetInteger("Cache", "address_bits", 32);
-    config->miss_penalty_no_replacement = reader.GetInteger("Cache", "miss_penalty_no_replacement", 12);
-    config->miss_penalty_with_replacement = reader.GetInteger("Cache", "miss_penalty_with_replacement", 20);
+    config->mem_fetch_latency = reader.GetInteger("Cache", "mem_fetch_latency", 50);
+    config->wb_latency = reader.GetInteger("Cache", "wb_latency", 10);
+    config->vc_access_latency = reader.GetInteger("Cache", "vc_access_latency", 3);
     config->filepath = reader.GetString("Simulation", "program_file_path", "program.asm");
     config->num_iterations = reader.GetInteger("Simulation", "num_iterations", 2);
     return config;
@@ -155,7 +157,7 @@ int main(){
     string config_path = "../config/config.ini";
     SimConfig *config = loadConfig(config_path);
     Cache *cache = new Cache(config->num_sets, config->associativity, config->block_size, 
-                            config->address_bits, config->miss_penalty_no_replacement, config->miss_penalty_with_replacement);
+                            config->address_bits, config->mem_fetch_latency, config->wb_latency, config->vc_access_latency);
     CPU *cpu = new CPU(config, cache);
     string filename = config->filepath;
     cpu->loadProgram(filename);

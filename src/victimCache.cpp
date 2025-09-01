@@ -34,6 +34,7 @@ class VictimCache{
         }
 
         bool checkInVictimCache(int requestedLine, int evictedLine){
+            cout<<requestedLine<<" "<<evictedLine<<endl;
             if(lookup_map.find(requestedLine) != lookup_map.end()){
                 handleVictimCacheHit(requestedLine, evictedLine);
                 return true;
