@@ -100,7 +100,7 @@ class CPU{
             ADDR_FU = new FunctionalUnit(0, 1);
             for(int i=0;i<32;i++){
                 rsi[i]=-1;
-                registers[i]=1;
+                registers[i]=0;
             }
             num_iterations = config->num_iterations;
         }
