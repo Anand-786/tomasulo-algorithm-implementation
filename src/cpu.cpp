@@ -128,7 +128,7 @@ class CPU{
                     global_seq_num++;
                     vector<string> instruction = parse_line(line);
 
-                    if(instruction.size()==5){
+                    if(instruction.size()==5 || (instruction.size()==4 && (instruction[1]=="LOAD" || instruction[1]=="STORE"))){
                         if(!isLabelPresent){
                             isLabelPresent = true;
                             label=instruction[0];
