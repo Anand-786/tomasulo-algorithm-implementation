@@ -31,77 +31,10 @@ Concise 2–3 sentences explaining what the project is, why it exists, and its s
 
 ## System Architecture
 
-```text
-         +-----------------+         +-----------------+
-         |  Program.asm    |         |   Config.ini    |
-         +-----------------+         +-----------------+
-                   |                          |
-                   +------------+-------------+
-                                |
-                                v
-                     +----------------------+
-                     |   Initialization     |
-                     +----------------------+
-                                |
-                                v
-                     +----------------------+
-                     | Load + Decode Stage  |
-                     | (fills Instr. Queue) |
-                     +----------------------+
-                                |
-                                v
-                     +----------------------+
-                     | Instruction Queue    |
-                     +----------------------+
-                                |
-              +-----------------+------------------+
-              |                                    |
-              v                                    v
-   +----------------------+              +----------------------+
-   | Reservation Stations |              |  Load/Store Queue    |
-   +----------------------+              +----------------------+
-              |                                    |
-              +-----------------+------------------+
-                                |
-                                v
-                     +----------------------+
-                     | Reorder Buffer (ROB) |
-                     +----------------------+
-                                |
-                 +--------------+--------------+
-                 |                             |
-                 v                             v
-      +-------------------+          +-------------------+
-      | Execution Units   |          |   Register File   |
-      +-------------------+          |   (32 registers)  |
-                 |                   +-------------------+
-                 v
-        +--------------------+
-        |  Memory Access     |
-        | (Load only)        |
-        +--------------------+
-                 |
-         +-------+-------+
-         |   L1 Data     |
-         |    Cache      |
-         +---------------+
-                 |
-        +--------+--------+
-        |  Victim Cache   |
-        |   (optional)    |
-        +-----------------+
-                 |
-                 v
-        +--------------------+
-        |  CDB Write Stage   |
-        +--------------------+
-                 |
-                 v
-        +--------------------+
-        |   Commit Stage     |
-        +--------------------+
+<p align="center">
+  <img src="assets/arch.png" alt="System Architecture Diagram" height="350px">
+</p>
  
-
 | Component          | Role in Simulation                           |
 |--------------------|----------------------------------------------|
 | Instruction Queue  | Holds decoded instructions before issue      |
