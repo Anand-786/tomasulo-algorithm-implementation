@@ -16,6 +16,8 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
   <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="46%">
 </p>
 
+---
+
 ## System Architecture
 
 <p align="left">
@@ -51,14 +53,14 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 I performed 3 main experiments on the Simulator. Here are their objectives, setup, results and key takeaways.
 
 
-## 1. Impact of ROB Size vs. IPC  
+### 1. Impact of ROB Size vs. IPC  
 
-### Objective:  
+#### Objective:  
 
 To study how the benefit of increasing the Re-Order Buffer (ROB) size changes under workloads with different instruction latencies. 
 
 
-### Experimental Setup:  
+#### Experimental Setup:  
 
 | Parameter              | Value                         |
 |------------------------|-------------------------------|
@@ -73,20 +75,20 @@ To study how the benefit of increasing the Re-Order Buffer (ROB) size changes un
 </p>
 
 
-### Key Takeaway:  
+#### Key Takeaway:  
 
 When instruction latencies are high (e.g., long MUL operations), a larger ROB allows more overlap and better latency hiding, leading to clear performance gains. For low-latency instructions, however, the performance improvement saturates quickly, and increasing the ROB further offers little additional benefit.
 
 ---
 
-## 2. Victim Cache Effectiveness and Thrashing Point  
+### 2. Victim Cache Effectiveness and Thrashing Point  
 
-### Objective:
+#### Objective:
 
 To evaluate the effectiveness of a Victim Cache (VC) in reducing conflict misses penalties and to identify the point at which it stops being useful. 
 
 
-### Experimental Setup:  
+#### Experimental Setup:  
 
 | Parameter           | Value                           |
 |---------------------|---------------------------------|
@@ -102,20 +104,20 @@ To evaluate the effectiveness of a Victim Cache (VC) in reducing conflict misses
 </p>
 
 
-### Key Takeaway:
+#### Key Takeaway:
 
 The VC substantially reduced the Average Memory Access Time (AMAT) up to the point where the number of conflicting addresses exceeded its capacity (around N=6). Beyond this point, thrashing occurred and the benefit disappeared. This indicates that the VC works well in mitigating conflict misses, but only within the limits of its small storage capacity.
 
 ---
 
-## 3. LSQ Effectiveness: Store-to-Load Forwarding  
+### 3. LSQ Effectiveness: Store-to-Load Forwarding  
 
-### Objective:
+#### Objective:
 
 To test whether the Load-Store Queue (LSQ) correctly performs Store-to-Load Forwarding (STLF), using a workload with explicit memory dependencies.
 
 
-### Experimental Setup: 
+#### Experimental Setup: 
 
 | Parameter       | Value                          |
 |-----------------|--------------------------------|
@@ -130,8 +132,8 @@ To test whether the Load-Store Queue (LSQ) correctly performs Store-to-Load Forw
 </p>
 
 
-### Key Takeaway:
-  
+#### Key Takeaway:
+
 With STLF enabled, dependent loads were able to receive data directly from earlier stores, avoiding cache access delays. This resulted in a 2.93× increase in IPC compared to the baseline workload. The result shows that STLF is not just a correctness feature but also an important optimization for workloads with memory-based dependencies.  
 
 ---
