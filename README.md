@@ -53,11 +53,12 @@ I performed 3 main experiments on the Simulator. Here are their objectives, setu
 
 ## 1. Impact of ROB Size vs. IPC  
 
-**Objective:**  
+### Objective:  
+
 To study how the benefit of increasing the Re-Order Buffer (ROB) size changes under workloads with different instruction latencies. 
 
 
-**Experimental Setup:**  
+### Experimental Setup:  
 
 | Parameter              | Value                         |
 |------------------------|-------------------------------|
@@ -68,22 +69,24 @@ To study how the benefit of increasing the Re-Order Buffer (ROB) size changes un
 
 
 <p align="left">
-  <img src="assets/ipc-vs-rob.png" width="75%">
+  <img src="assets/ipc-vs-rob.png" width="60%">
 </p>
 
 
-**Key Takeaway:**  
+### Key Takeaway:  
+
 When instruction latencies are high (e.g., long MUL operations), a larger ROB allows more overlap and better latency hiding, leading to clear performance gains. For low-latency instructions, however, the performance improvement saturates quickly, and increasing the ROB further offers little additional benefit.
 
 ---
 
 ## 2. Victim Cache Effectiveness and Thrashing Point  
 
-**Objective:**  
+### Objective:
+
 To evaluate the effectiveness of a Victim Cache (VC) in reducing conflict misses penalties and to identify the point at which it stops being useful. 
 
 
-**Experimental Setup:**  
+### Experimental Setup:  
 
 | Parameter           | Value                           |
 |---------------------|---------------------------------|
@@ -99,18 +102,20 @@ To evaluate the effectiveness of a Victim Cache (VC) in reducing conflict misses
 </p>
 
 
-**Key Takeaway:**  
+### Key Takeaway:
+
 The VC substantially reduced the Average Memory Access Time (AMAT) up to the point where the number of conflicting addresses exceeded its capacity (around N=6). Beyond this point, thrashing occurred and the benefit disappeared. This indicates that the VC works well in mitigating conflict misses, but only within the limits of its small storage capacity.
 
 ---
 
 ## 3. LSQ Effectiveness: Store-to-Load Forwarding  
 
-**Objective:**  
+### Objective:
+
 To test whether the Load-Store Queue (LSQ) correctly performs Store-to-Load Forwarding (STLF), using a workload with explicit memory dependencies.
 
 
-**Experimental Setup:**  
+### Experimental Setup: 
 
 | Parameter       | Value                          |
 |-----------------|--------------------------------|
@@ -125,7 +130,8 @@ To test whether the Load-Store Queue (LSQ) correctly performs Store-to-Load Forw
 </p>
 
 
-**Key Takeaway:**  
+### Key Takeaway:
+  
 With STLF enabled, dependent loads were able to receive data directly from earlier stores, avoiding cache access delays. This resulted in a 2.93× increase in IPC compared to the baseline workload. The result shows that STLF is not just a correctness feature but also an important optimization for workloads with memory-based dependencies.  
 
 ---
@@ -134,7 +140,10 @@ With STLF enabled, dependent loads were able to receive data directly from earli
 
 For full setup and run instructions, see [Usage Guide](./USAGE.md).  
 
-Below is an example of the simulator’s terminal output when starting a run.
+## Sample Outputs   
+
+Below is an example of the simulator’s terminal output when starting a run : 
+
 ```
 
 
@@ -228,4 +237,72 @@ Below is an example of the simulator’s terminal output when starting a run.
 
 ``` 
 
+### Gantt Chart Visualization  
+
+The simulator generates a Gantt chart to visualize instruction progress through pipeline stages.  
+
+<p align="left">
+  <img src="assets/gantt_chart.png" alt="Sample Gantt Chart" width="60%">
+</p>  
+
+Each row corresponds to an instruction, and colored bars denote its active stage per cycle, making pipeline overlap and stalls easy to inspect.
+
+### Trace Log (Excerpt)  
+
+Below is a snippet from the generated `trace.log` file, showing the cycle-by-cycle execution of instructions : 
+
+```
+Integer-ALU Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Multiplier Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+Yes   | MUL     | ROB 14  | -       | -       | 0       | ROB 15
+
+Divider Reservation Stations
+Busy  | Op      | Qj      | Qk      | Vj      | Vk      | Dest  
+-----------------------------------------------------------------
+
+Reorder Buffer [ROB : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | Dest      | Value     | Done  
+--------------------------------------------------
+ROB 10  | ADD     | R20       | 0         | Yes   
+ROB 11  | MUL     | R21       | -         | No    
+ROB 12  | LOAD    | R22       | 0         | Yes   
+ROB 13  | LOAD    | R23       | 0         | Yes   
+ROB 14  | ADD     | R24       | -         | No    
+ROB 15  | MUL     | R25       | -         | No    
+ROB 0   |         | R0        | 0         | Yes   
+
+Load/Store Queue [LSQ : (Head => Tail) OR (Oldest => Newest)]
+Entry   | Type    | EA    | Value     | Dest      | Offset   | Base Reg Value    | Ready   | CDB Write   
+---------------------------------------------------------------------------------------------------------
+LSQ 6   | LOAD    | 0     | 0         | ROB 12    | 0        | 0                 | YES     | DONE        
+LSQ 7   | LOAD    | 0     | 0         | ROB 13    | 0        | 0                 | YES     | DONE        
+
+Register File & Status
+ R0     | R1     | R2     | R3     | R4     | R5     | R6     | R7     | R8     
+--------------------------------------------------------------------------------
+ Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  | Ready  
+ 0      | 0      | 0      | 0      | 0      | 0      | 0      | 0      | 0      
+
+ Memory State
+-
+
+----------------------------------------------------------------------------------------------- Cycle 24 ---
+
+```  
+
+---
+
+## Future Work  
+
+Several directions can extend this simulator for deeper exploration:  
+
+- **Branch Prediction**: Add static/dynamic prediction schemes and study misprediction penalties.
+- **Multi-Core Support**: Extend the simulator to model multi-core with a shared cache hierarchy and coherence.
+- **Visualization Enhancements**: Web-based dashboards for pipeline analysis.
+- **Superscalar**: Add multi-issue and multiple CDB write support for increasing IPC>1.  
 
