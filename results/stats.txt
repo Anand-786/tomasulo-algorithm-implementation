@@ -2,7 +2,7 @@
 sim.total_cycles                   = 34
 sim.total_insts                    = 17
 sim.ipc                            = 0.5000
-sim.wallclock_time_secs            = 0.0030
+sim.wallclock_time_secs            = 0.0050
 
 # --- Instruction Level ---
 commit.op_class.IntAlu             = 5
