@@ -1,45 +1,45 @@
 # --- Core Performance ---
-sim.total_cycles                   = 62
-sim.total_insts                    = 8
-sim.ipc                            = 0.1290
-sim.wallclock_time_secs            = 0.0060
+sim.total_cycles                   = 34
+sim.total_insts                    = 17
+sim.ipc                            = 0.5000
+sim.wallclock_time_secs            = 0.0030
 
 # --- Instruction Level ---
-commit.op_class.IntAlu             = 4
-commit.op_class.IntMul             = 0
+commit.op_class.IntAlu             = 5
+commit.op_class.IntMul             = 4
 commit.op_class.IntDiv             = 0
-commit.op_class.MemRead            = 2
-commit.op_class.MemWrite           = 2
-commit.inst_latency.avg            = 53.8750
-commit.inst_latency.max            = 54
+commit.op_class.MemRead            = 8
+commit.op_class.MemWrite           = 0
+commit.inst_latency.avg            = 14.1765
+commit.inst_latency.max            = 17
 
 # --- Pipeline Analysis ---
-rob.avg_occupancy                  = 6.9516
-rob.peak_occupancy                 = 8
-lsq.avg_occupancy                  = 3.4677
-lsq.peak_occupancy                 = 4
+rob.avg_occupancy                  = 7.0882
+rob.peak_occupancy                 = 13
+lsq.avg_occupancy                  = 3.2353
+lsq.peak_occupancy                 = 7
 rs.avg_occupancy                   = 0.0000
-fu.alu_utilization                 = 0.0323
-fu.mul_utilization                 = 0.0000
+fu.alu_utilization                 = 0.1176
+fu.mul_utilization                 = 0.6471
 fu.div_utilization                 = 0.0000
 
 # --- Dependency and Hazards ---
-rs.raw_hazard_stall_cycles         = 152
-lsq.store_to_load_forwards         = 1
-cdb.total_broadcasts               = 6
+rs.raw_hazard_stall_cycles         = 16
+lsq.store_to_load_forwards         = 0
+cdb.total_broadcasts               = 16
 
 # --- L1 Data Cache ---
-l1d.overall_accesses               = 3
-l1d.overall_hits                   = 2
+l1d.overall_accesses               = 8
+l1d.overall_hits                   = 7
 l1d.overall_misses                 = 1
-l1d.overall_hit_rate               = 0.6667
-l1d.overall_miss_rate              = 0.3333
-l1d.read_accesses                  = 1
-l1d.read_hits                      = 0
+l1d.overall_hit_rate               = 0.8750
+l1d.overall_miss_rate              = 0.1250
+l1d.read_accesses                  = 8
+l1d.read_hits                      = 7
 l1d.read_misses                    = 1
-l1d.write_accesses                 = 2
-l1d.write_hits                     = 2
+l1d.write_accesses                 = 0
+l1d.write_hits                     = 0
 l1d.write_misses                   = 0
-l1d.avg_miss_penalty               = 49.0000
-l1d.amat                           = 17.3333
+l1d.avg_miss_penalty               = 9.0000
+l1d.amat                           = 2.1250
 

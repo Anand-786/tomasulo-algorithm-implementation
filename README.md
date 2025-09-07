@@ -1,6 +1,6 @@
 # Tomasulo Simulator  
 
-*A cycle-accurate Out-of-Order CPU simulator with Tomasulo’s Algorithm, ROB, LSQ, and cache hierarchy.*  
+An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB, L1 Data Cache, and Victim Cache. Features configurable parameters, cycle-by-cycle tracing, statistics generation, and Gantt chart visualization. Designed for education and computer architecture research. 
 
 ---
 
