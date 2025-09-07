@@ -1,0 +1,4 @@
+Program,    IPC,    AMAT(cycles)
+
+A(stlf),    0.88,   1.49
+B(no stlf), 0.30,   13.04
