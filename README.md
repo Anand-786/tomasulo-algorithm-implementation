@@ -19,7 +19,7 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 ## System Architecture
 
 <p align="center">
-  <img src="assets/arch1.png" alt="System Architecture Diagram" height="250px">
+  <img src="assets/arch1.png" alt="System Architecture Diagram" height="300px">
 </p>  
 
 <p align="center">
@@ -28,45 +28,37 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
  
 ## Components and Features  
 
-| Component / Feature   | Config Parameter(s)                      |
-|-----------------------|------------------------------------------|
-| Reorder Buffer (ROB)  | `rob_size`                               |
-| Load/Store Queue (LSQ)| `lsq_size`                               |
-| L1 Data Cache         | `num_sets`, `associativity`, `block_size`|
-| Victim Cache          | `victim_cache_size``vc_access_latency`   |
-| ALU RS                | `num_alu_rs`, `alu_latency`              |
-| MUL RS                | `num_mul_rs`, `mul_latency`              |
-| DIV RS                | `num_div_rs`, `div_latency`              |
-| Memory Subsystem      | `mem_fetch_latency`, `wb_latency`        |
-| Program Input         | `program_file_path`                      |
-| Cycle-by-Cycle Trace  | `trace_file_enabled`                     |
-| Gantt Chart           | `gantt_chart_enabled`                    |
-| Statistics Generation | (auto-generated)                         |
-| Register File         | (fixed)                                  |
+| Component / Feature         | Config Parameter(s)                           |
+|-----------------------------|-----------------------------------------------|
+| Reorder Buffer (ROB)        | `rob_size`                                    |
+| Load/Store Queue (LSQ)      | `lsq_size`                                    |
+| L1 Data Cache               | `num_sets`, `associativity`, `block_size`     |
+| Victim Cache                | `victim_cache_size`, `vc_access_latency`      |
+| ALU RS                      | `num_alu_rs`, `alu_latency`                   |
+| MUL RS                      | `num_mul_rs`, `mul_latency`                   |
+| DIV RS                      | `num_div_rs`, `div_latency`                   |
+| Memory Subsystem            | `mem_fetch_latency`, `wb_latency`             |
+| Program Input               | `program_file_path`                           |
+| Cycle-by-Cycle Trace        | `trace_file_enabled`                          |
+| Gantt Chart                 | `gantt_chart_enabled`                         |
+| Statistics Generation       | (auto-generated)                              |
+| Register File               | (fixed)                                       |
 
+## Experiments & Analysis  
 
-## Experimental Setup  
-- Workloads used (e.g., matrix multiplication, sorting, etc.)  
-- Simulation parameters (cache size, associativity, ROB size, victim cache size, etc.)  
-- Metrics collected (IPC, miss rate, hit rate, stall cycles, etc.)  
-
----
-
-## Results & Analysis  
-
-### Associativity vs Victim Cache  
+### 1. Associativity vs Victim Cache  
 Insert plot (PNG).  
 Short takeaway sentence.  
 
 ---
 
-### Victim Cache Hit Rate Across Workloads  
+### 2. Victim Cache Hit Rate Across Workloads  
 Insert plot (PNG).  
 Short takeaway sentence.  
 
 ---
 
-### Cycle-by-Cycle Execution Trace (Sample)  
+### 3. Cycle-by-Cycle Execution Trace (Sample)  
 Insert a snippet of output table/trace for illustration.  
 
 ---
