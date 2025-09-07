@@ -8,43 +8,42 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 ## Project Showcase  
 
 <p align="center">
-  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="96%">
+  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="80%">
 </p>
 
 <p align="center">
-  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="48%">
-  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="48%">
+  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="40%">
+  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="40%">
 </p>
-
-
-## Overview  
-Concise 2–3 sentences explaining what the project is, why it exists, and its scope.  
-
-
-## Features  
-- Out-of-Order CPU simulation with Tomasulo’s Algorithm  
-- Load/Store Queue (LSQ), Reorder Buffer (ROB), L1 Data Cache, Victim Cache  
-- Configurable architectural parameters  
-- Cycle-by-cycle tracing and statistics  
-- Gantt chart and performance visualization  
-
 
 ## System Architecture
 
 <p align="center">
-  <img src="assets/arch.png" alt="System Architecture Diagram">
-</p>
- 
-| Component          | Role in Simulation                           |
-|--------------------|----------------------------------------------|
-| Instruction Queue  | Holds decoded instructions before issue      |
-| Reservation Stations | Tracks issued instructions awaiting operands |
-| LSQ                | Handles memory ops with dependency checks    |
-| ROB                | Maintains program order and ensures commit   |
-| L1 Data Cache      | First-level memory access                    |
-| Victim Cache       | Reduces conflict misses from L1D             |
+  <img src="assets/arch1.png" alt="System Architecture Diagram" height="350px">
+</p>  
 
----
+<p align="center">
+  <i>Source: ReViCe: Reusing Victim Cache to Prevent Speculative Cache Leakage - Scientific Figure on ResearchGate</i>
+</p> 
+ 
+## Components and Features  
+
+| Component / Feature   | Description                                              | Config Parameter(s)                      |
+|-----------------------|----------------------------------------------------------|------------------------------------------|
+| Reorder Buffer (ROB)  | Commits instructions in-order                            | `rob_size`                               |
+| Load/Store Queue (LSQ)| Manages Load/Store dependencies and ordering             | `lsq_size`                               |
+| L1 Data Cache         | Level-1 Data Cache                                       | `num_sets`, `associativity`, `block_size`|
+| Victim Cache          | Stores recently evicted blocks to reduce conflict misses | `victim_cache_size``vc_access_latency`   |
+| ALU RS                | Reservation stations for integer ALU instructions        | `num_alu_rs`, `alu_latency`              |
+| MUL RS                | Reservation stations for multiplication instructions     | `num_mul_rs`, `mul_latency`              |
+| DIV RS                | Reservation stations for division instructions           | `num_div_rs`, `div_latency`              |
+| Memory Subsystem      | Latency modeling for memory fetches and writebacks       | `mem_fetch_latency`, `wb_latency`        |
+| Program Input         | Assembly program input                                   | `program_file_path`                      |
+| Cycle-by-Cycle Trace  | Detailed instruction execution trace (terminal/file)     | `trace_file_enabled`                     |
+| Gantt Chart           | Visualization of instruction pipeline flow               | `gantt_chart_enabled`                    |
+| Statistics Generation | Cache hit/miss rates, IPC, victim cache , stalls         | (auto-generated)                         |
+| Register File         | 32 general-purpose registers                             | (fixed)                                  |
+
 
 ## Experimental Setup  
 - Workloads used (e.g., matrix multiplication, sorting, etc.)  
