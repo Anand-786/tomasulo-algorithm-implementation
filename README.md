@@ -32,7 +32,7 @@ Concise 2–3 sentences explaining what the project is, why it exists, and its s
 ## System Architecture
 
 <p align="center">
-  <img src="assets/arch.png" alt="System Architecture Diagram" height="350px">
+  <img src="assets/arch.png" alt="System Architecture Diagram">
 </p>
  
 | Component          | Role in Simulation                           |
