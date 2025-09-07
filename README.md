@@ -46,7 +46,9 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 
 ## Experiments & Results  
 
-### 1. Impact of ROB Size vs. IPC  
+I performed 3 main experiments on the Simulator. Here are their objectives, setup, results and key takeaways.
+
+## 1. Impact of ROB Size vs. IPC  
 
 **Objective:**  
 Analyze how the performance benefit of a large Re-Order Buffer (ROB) changes when executing instructions with high versus low latency.  
@@ -60,14 +62,14 @@ Analyze how the performance benefit of a large Re-Order Buffer (ROB) changes whe
 | L1-D size              | 32 KB                         |
 | #iterations            | 100                           |
 
-<p align="center">
-  <img src="assets/ipc-vs-rob.png" width="90%">
+<p align="left">
+  <img src="assets/ipc-vs-rob.png" width="50%">
 </p>
 
 **Key Takeaway:**  
 A large ROB is most valuable when hiding high instruction latencies. With low-latency instructions, performance saturates quickly with a much smaller ROB.  
 
-### 2. Victim Cache Effectiveness and Thrashing Point  
+## 2. Victim Cache Effectiveness and Thrashing Point  
 
 **Objective:**  
 Quantify the performance improvement from a Victim Cache (VC) and identify its breaking point under increasing memory conflict pressure.  
@@ -81,15 +83,15 @@ Quantify the performance improvement from a Victim Cache (VC) and identify its b
 | Mem Access Penalty  | 20 cycles                       |
 | VC Hit Penalty      | 3 cycles                        |
 
-<p align="center">
-  <img src="assets/vc_vs_n.png" width="45%">
-  <img src="assets/avg_lat_vs_n.png" width="45%">
+<p align="left">
+  <img src="assets/vc_vs_n.png" width="50%">
+  <img src="assets/avg_lat_vs_n.png" width="50%">
 </p>
 
 **Key Takeaway:**  
 The VC kept the Average Memory Access Time (AMAT) extremely low until the number of conflicting addresses exceeded its capacity at N=6, causing thrashing. This confirms the VC's effectiveness in mitigating conflict misses up to its design limit.  
 
-### 3. LSQ Effectiveness: Store-to-Load Forwarding  
+## 3. LSQ Effectiveness: Store-to-Load Forwarding  
 
 **Objective:**  
 Demonstrate correct implementation of Store-to-Load Forwarding (STLF) by comparing a workload with a direct memory dependency to a control workload.  
@@ -103,8 +105,8 @@ Demonstrate correct implementation of Store-to-Load Forwarding (STLF) by compari
 | Victim Cache    | Disabled                       |
 | STLF            | Enabled                        |
 
-<p align="center">
-  <img src="assets/ipc_vs_stlf.png" width="90%">
+<p align="left">
+  <img src="assets/ipc_vs_stlf.png" width="50%">
 </p>
 
 **Key Takeaway:**  
