@@ -1,13 +1,14 @@
+👉  Related project : [Victim Cache Analysis in gem5](https://github.com/Anand-786/gem5-victim-cache)
+
 # Tomasulo Simulator  
 
-An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB, L1 Data Cache, and Victim Cache. Features configurable parameters, cycle-by-cycle tracing, statistics generation, and Gantt chart visualization. Designed for education and computer architecture research. 
+An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB, L1 Data Cache, and Victim Cache. Features configurable parameters, cycle-by-cycle tracing, statistics generation, and Gantt chart visualization. Designed for education and computer architecture research.
 
----
 
 ## Project Showcase  
 
 <p align="center">
-  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="80%">
+  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="96%">
 </p>
 
 <p align="center">
@@ -15,12 +16,10 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
   <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="48%">
 </p>
 
----
 
 ## Overview  
 Concise 2–3 sentences explaining what the project is, why it exists, and its scope.  
 
----
 
 ## Features  
 - Out-of-Order CPU simulation with Tomasulo’s Algorithm  
@@ -29,10 +28,79 @@ Concise 2–3 sentences explaining what the project is, why it exists, and its s
 - Cycle-by-cycle tracing and statistics  
 - Gantt chart and performance visualization  
 
----
 
-## System Architecture  
-A high-level schematic/diagram goes here.  
+## System Architecture
+
+```text
+         +-----------------+         +-----------------+
+         |  Program.asm    |         |   Config.ini    |
+         +-----------------+         +-----------------+
+                   |                          |
+                   +------------+-------------+
+                                |
+                                v
+                     +----------------------+
+                     |   Initialization     |
+                     +----------------------+
+                                |
+                                v
+                     +----------------------+
+                     | Load + Decode Stage  |
+                     | (fills Instr. Queue) |
+                     +----------------------+
+                                |
+                                v
+                     +----------------------+
+                     | Instruction Queue    |
+                     +----------------------+
+                                |
+              +-----------------+------------------+
+              |                                    |
+              v                                    v
+   +----------------------+              +----------------------+
+   | Reservation Stations |              |  Load/Store Queue    |
+   +----------------------+              +----------------------+
+              |                                    |
+              +-----------------+------------------+
+                                |
+                                v
+                     +----------------------+
+                     | Reorder Buffer (ROB) |
+                     +----------------------+
+                                |
+                 +--------------+--------------+
+                 |                             |
+                 v                             v
+      +-------------------+          +-------------------+
+      | Execution Units   |          |   Register File   |
+      +-------------------+          |   (32 registers)  |
+                 |                   +-------------------+
+                 v
+        +--------------------+
+        |  Memory Access     |
+        | (Load only)        |
+        +--------------------+
+                 |
+         +-------+-------+
+         |   L1 Data     |
+         |    Cache      |
+         +---------------+
+                 |
+        +--------+--------+
+        |  Victim Cache   |
+        |   (optional)    |
+        +-----------------+
+                 |
+                 v
+        +--------------------+
+        |  CDB Write Stage   |
+        +--------------------+
+                 |
+                 v
+        +--------------------+
+        |   Commit Stage     |
+        +--------------------+
+ 
 
 | Component          | Role in Simulation                           |
 |--------------------|----------------------------------------------|
