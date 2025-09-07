@@ -5,9 +5,9 @@
 using namespace std;
 
 void printConfig(string& filename, SimConfig *config, Cache *cache) {
-    const int keyWidth = 22, valWidth = 27;
+    const int keyWidth = 22, valWidth = 29;
     cout << " [ CONFIGURATION ]" << endl;
-    cout << " +----------------------------------------------------------+" << endl;
+    cout << " +------------------------------------------------------------+" << endl;
     
     cout << " | > L1 Cache Properties :" << setw(valWidth+7)<<" "<<"|"<< endl;
     cout << left;
@@ -20,7 +20,7 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |     - " << setw(keyWidth) << "Victim Cache Access" << ": " << setw(valWidth) << to_string(config->vc_access_latency)+" cycles" <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Memory Fetch Latency" << ": " << setw(valWidth) << to_string(config->mem_fetch_latency)+" cycles" << "|" <<  endl;
     cout << " |     - " << setw(keyWidth) << "Writeback Latency" << ": " << setw(valWidth) << to_string(config->wb_latency)+" cycles" <<  "|" << endl;
-    cout << " |                                                          |"<<endl;
+    cout << " |                                                            |"<<endl;
     cout << " | > Simulator Properties :" <<setw(valWidth+6)<<" "<<"|"<< endl;
     cout << " |     - " << setw(keyWidth) << "Program File" << ": " << setw(valWidth) << filename <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "#Iterations" << ": " << setw(valWidth) << to_string(config->num_iterations) <<  "|" << endl;
@@ -33,7 +33,7 @@ void printConfig(string& filename, SimConfig *config, Cache *cache) {
     cout << " |     - " << setw(keyWidth) << "Reservation Stations" << ": " << setw(valWidth) << to_string(config->num_alu_rs)+" (ALU), "+to_string(config->num_mul_rs)+" (MUL), "+to_string(config->num_div_rs)+" (DIV)" <<  "|" << endl;
     cout << " |     - " << setw(keyWidth) << "Latencies (cycles)" << ": " << setw(valWidth) << to_string(config->alu_latency)+" (ALU), "+to_string(config->mul_latency)+" (MUL), "+to_string(config->div_latency)+" (DIV)" <<  "|" << endl;
 
-    cout << " +----------------------------------------------------------+" << endl;
+    cout << " +------------------------------------------------------------+" << endl;
     cout << endl<<endl;
 }
 
