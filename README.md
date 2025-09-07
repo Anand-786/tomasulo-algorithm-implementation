@@ -44,24 +44,71 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 | Statistics Generation       | (auto-generated)                              |
 | Register File               | (fixed)                                       |
 
-## Experiments & Analysis  
+## Experiments & Results  
 
-### 1. Associativity vs Victim Cache  
-Insert plot (PNG).  
-Short takeaway sentence.  
+### 1. Impact of ROB Size vs. IPC  
 
----
+**Objective:**  
+Analyze how the performance benefit of a large Re-Order Buffer (ROB) changes when executing instructions with high versus low latency.  
 
-### 2. Victim Cache Hit Rate Across Workloads  
-Insert plot (PNG).  
-Short takeaway sentence.  
+**Experimental Setup:**  
 
----
+| Parameter              | Value                         |
+|------------------------|-------------------------------|
+| MUL Latency            | 1 cycle(low), 5 cycles(high)  |
+| Reservation Stations   | 32                            |
+| L1-D size              | 32 KB                         |
+| #iterations            | 100                           |
 
-### 3. Cycle-by-Cycle Execution Trace (Sample)  
-Insert a snippet of output table/trace for illustration.  
+<p align="center">
+  <img src="assets/ipc-vs-rob.png" width="90%">
+</p>
 
----
+**Key Takeaway:**  
+A large ROB is most valuable when hiding high instruction latencies. With low-latency instructions, performance saturates quickly with a much smaller ROB.  
+
+### 2. Victim Cache Effectiveness and Thrashing Point  
+
+**Objective:**  
+Quantify the performance improvement from a Victim Cache (VC) and identify its breaking point under increasing memory conflict pressure.  
+
+**Experimental Setup:**  
+
+| Parameter           | Value                           |
+|---------------------|---------------------------------|
+| L1 D-Cache          | 4KB, Direct-Mapped, 64B Block   |
+| Victim Cache        | 4 Entries                       |
+| Mem Access Penalty  | 20 cycles                       |
+| VC Hit Penalty      | 3 cycles                        |
+
+<p align="center">
+  <img src="assets/vc_vs_n.png" width="45%">
+  <img src="assets/avg_lat_vs_n.png" width="45%">
+</p>
+
+**Key Takeaway:**  
+The VC kept the Average Memory Access Time (AMAT) extremely low until the number of conflicting addresses exceeded its capacity at N=6, causing thrashing. This confirms the VC's effectiveness in mitigating conflict misses up to its design limit.  
+
+### 3. LSQ Effectiveness: Store-to-Load Forwarding  
+
+**Objective:**  
+Demonstrate correct implementation of Store-to-Load Forwarding (STLF) by comparing a workload with a direct memory dependency to a control workload.  
+
+**Experimental Setup:**  
+
+| Parameter       | Value                          |
+|-----------------|--------------------------------|
+| L1 D-Cache      | 1KB, Direct-Mapped, 32B Block  |
+| LSQ Size        | 32 Entries                     |
+| Victim Cache    | Disabled                       |
+| STLF            | Enabled                        |
+
+<p align="center">
+  <img src="assets/ipc_vs_stlf.png" width="90%">
+</p>
+
+**Key Takeaway:**  
+The LSQ’s ability to forward data from a recent store to a dependent load resulted in a **2.93× IPC speedup**. This highlights STLF as a critical optimization for resolving memory-based data hazards.  
 
 ## Example Output (Statistics Snapshot)  
 ```txt
