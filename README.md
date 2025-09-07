@@ -8,18 +8,18 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 ## Project Showcase  
 
 <p align="center">
-  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="80%">
+  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="90%">
 </p>
 
 <p align="center">
-  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="40%">
-  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="40%">
+  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="45%">
+  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="45%">
 </p>
 
 ## System Architecture
 
 <p align="center">
-  <img src="assets/arch1.png" alt="System Architecture Diagram" height="350px">
+  <img src="assets/arch1.png" alt="System Architecture Diagram" height="250px">
 </p>  
 
 <p align="center">
@@ -28,21 +28,21 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
  
 ## Components and Features  
 
-| Component / Feature   | Description                                              | Config Parameter(s)                      |
-|-----------------------|----------------------------------------------------------|------------------------------------------|
-| Reorder Buffer (ROB)  | Commits instructions in-order                            | `rob_size`                               |
-| Load/Store Queue (LSQ)| Manages Load/Store dependencies and ordering             | `lsq_size`                               |
-| L1 Data Cache         | Level-1 Data Cache                                       | `num_sets`, `associativity`, `block_size`|
-| Victim Cache          | Stores recently evicted blocks to reduce conflict misses | `victim_cache_size``vc_access_latency`   |
-| ALU RS                | Reservation stations for integer ALU instructions        | `num_alu_rs`, `alu_latency`              |
-| MUL RS                | Reservation stations for multiplication instructions     | `num_mul_rs`, `mul_latency`              |
-| DIV RS                | Reservation stations for division instructions           | `num_div_rs`, `div_latency`              |
-| Memory Subsystem      | Latency modeling for memory fetches and writebacks       | `mem_fetch_latency`, `wb_latency`        |
-| Program Input         | Assembly program input                                   | `program_file_path`                      |
-| Cycle-by-Cycle Trace  | Detailed instruction execution trace (terminal/file)     | `trace_file_enabled`                     |
-| Gantt Chart           | Visualization of instruction pipeline flow               | `gantt_chart_enabled`                    |
-| Statistics Generation | Cache hit/miss rates, IPC, victim cache , stalls         | (auto-generated)                         |
-| Register File         | 32 general-purpose registers                             | (fixed)                                  |
+| Component / Feature   | Config Parameter(s)                      |
+|-----------------------|------------------------------------------|
+| Reorder Buffer (ROB)  | `rob_size`                               |
+| Load/Store Queue (LSQ)| `lsq_size`                               |
+| L1 Data Cache         | `num_sets`, `associativity`, `block_size`|
+| Victim Cache          | `victim_cache_size``vc_access_latency`   |
+| ALU RS                | `num_alu_rs`, `alu_latency`              |
+| MUL RS                | `num_mul_rs`, `mul_latency`              |
+| DIV RS                | `num_div_rs`, `div_latency`              |
+| Memory Subsystem      | `mem_fetch_latency`, `wb_latency`        |
+| Program Input         | `program_file_path`                      |
+| Cycle-by-Cycle Trace  | `trace_file_enabled`                     |
+| Gantt Chart           | `gantt_chart_enabled`                    |
+| Statistics Generation | (auto-generated)                         |
+| Register File         | (fixed)                                  |
 
 
 ## Experimental Setup  
