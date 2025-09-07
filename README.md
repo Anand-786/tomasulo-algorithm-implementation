@@ -8,12 +8,12 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 ## Project Showcase  
 
 <p align="center">
-  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="90%">
+  <img src="assets/simulator_startup.png" alt="Simulator Startup Output" width="92%">
 </p>
 
 <p align="center">
-  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="45%">
-  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="45%">
+  <img src="assets/gantt_chart.png" alt="Gantt Chart Visualization" width="46%">
+  <img src="assets/trace_output.png" alt="Cycle-by-Cycle Trace" width="46%">
 </p>
 
 ## System Architecture
@@ -44,14 +44,16 @@ An Out-of-Order CPU simulator implementing Tomasulo’s Algorithm with LSQ, ROB,
 | Statistics Generation       | (auto-generated)                              |
 | Register File               | (fixed)                                       |
 
+---
+
 ## Experiments & Results  
 
 I performed 3 main experiments on the Simulator. Here are their objectives, setup, results and key takeaways.
 
-## 1. Impact of ROB Size vs. IPC  
+### 1. Impact of ROB Size vs. IPC  
 
 **Objective:**  
-Analyze how the performance benefit of a large Re-Order Buffer (ROB) changes when executing instructions with high versus low latency.  
+To study how the benefit of increasing the Re-Order Buffer (ROB) size changes under workloads with different instruction latencies. 
 
 **Experimental Setup:**  
 
@@ -63,16 +65,18 @@ Analyze how the performance benefit of a large Re-Order Buffer (ROB) changes whe
 | #iterations            | 100                           |
 
 <p align="left">
-  <img src="assets/ipc-vs-rob.png" width="50%">
+  <img src="assets/ipc-vs-rob.png" width="75%">
 </p>
 
 **Key Takeaway:**  
-A large ROB is most valuable when hiding high instruction latencies. With low-latency instructions, performance saturates quickly with a much smaller ROB.  
+When instruction latencies are high (e.g., long MUL operations), a larger ROB allows more overlap and better latency hiding, leading to clear performance gains. For low-latency instructions, however, the performance improvement saturates quickly, and increasing the ROB further offers little additional benefit.
 
-## 2. Victim Cache Effectiveness and Thrashing Point  
+---
+
+### 2. Victim Cache Effectiveness and Thrashing Point  
 
 **Objective:**  
-Quantify the performance improvement from a Victim Cache (VC) and identify its breaking point under increasing memory conflict pressure.  
+To evaluate the effectiveness of a Victim Cache (VC) in reducing conflict misses penalties and to identify the point at which it stops being useful. 
 
 **Experimental Setup:**  
 
@@ -84,17 +88,19 @@ Quantify the performance improvement from a Victim Cache (VC) and identify its b
 | VC Hit Penalty      | 3 cycles                        |
 
 <p align="left">
-  <img src="assets/vc_vs_n.png" width="50%">
-  <img src="assets/avg_lat_vs_n.png" width="50%">
+  <img src="assets/vc_vs_n.png" width="48%">
+  <img src="assets/avg_lat_vs_n.png" width="48%">
 </p>
 
 **Key Takeaway:**  
-The VC kept the Average Memory Access Time (AMAT) extremely low until the number of conflicting addresses exceeded its capacity at N=6, causing thrashing. This confirms the VC's effectiveness in mitigating conflict misses up to its design limit.  
+The VC substantially reduced the Average Memory Access Time (AMAT) up to the point where the number of conflicting addresses exceeded its capacity (around N=6). Beyond this point, thrashing occurred and the benefit disappeared. This indicates that the VC works well in mitigating conflict misses, but only within the limits of its small storage capacity.
 
-## 3. LSQ Effectiveness: Store-to-Load Forwarding  
+---
+
+### 3. LSQ Effectiveness: Store-to-Load Forwarding  
 
 **Objective:**  
-Demonstrate correct implementation of Store-to-Load Forwarding (STLF) by comparing a workload with a direct memory dependency to a control workload.  
+To test whether the Load-Store Queue (LSQ) correctly performs Store-to-Load Forwarding (STLF), using a workload with explicit memory dependencies.
 
 **Experimental Setup:**  
 
@@ -106,11 +112,11 @@ Demonstrate correct implementation of Store-to-Load Forwarding (STLF) by compari
 | STLF            | Enabled                        |
 
 <p align="left">
-  <img src="assets/ipc_vs_stlf.png" width="50%">
+  <img src="assets/ipc_vs_stlf.png" width="75%">
 </p>
 
 **Key Takeaway:**  
-The LSQ’s ability to forward data from a recent store to a dependent load resulted in a **2.93× IPC speedup**. This highlights STLF as a critical optimization for resolving memory-based data hazards.  
+With STLF enabled, dependent loads were able to receive data directly from earlier stores, avoiding cache access delays. This resulted in a 2.93× increase in IPC compared to the baseline workload. The result shows that STLF is not just a correctness feature but also an important optimization for workloads with memory-based dependencies.  
 
 ## Example Output (Statistics Snapshot)  
 ```txt
